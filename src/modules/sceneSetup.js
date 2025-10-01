@@ -58,8 +58,13 @@ export class SceneSetup {
 
   createRenderer() {
     console.log("Create the renderer");
-    this.renderer = new THREE.WebGL1Renderer();
+    this.renderer = new THREE.WebGL1Renderer({
+      antialias: true,
+      powerPreference: "high-performance",
+      alpha: false,
+    });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.shadowMap.enabled = true;
     document.body.appendChild(this.renderer.domElement);
