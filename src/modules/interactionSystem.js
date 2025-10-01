@@ -326,14 +326,35 @@ export class InteractionSystem {
     } else if (this.isZoomingOut) {
       this.camera.position.lerp(this.zoomOutTargetPosition, 0.08);
 
-      if (this.camera.position.distanceTo(this.zoomOutTargetPosition) < 1) {
+      // More robust completion check with multiple conditions
+      const distance = this.camera.position.distanceTo(
+        this.zoomOutTargetPosition
+      );
+      const isCloseEnough = distance < 2; // Increased threshold for reliability
+      const isDampingComplete = distance < 0.1; // Very close for damping end
+
+      if (isCloseEnough || isDampingComplete) {
         this.isZoomingOut = false;
+
+        // Clear safety timeout
+        if (this.zoomOutTimeout) {
+          clearTimeout(this.zoomOutTimeout);
+          this.zoomOutTimeout = null;
+        }
+
+        // Force final position to avoid floating point issues
+        this.camera.position.copy(this.zoomOutTargetPosition);
 
         // Ensure controls are fully enabled and free after zoom out completes
         this.freeCameraControls();
 
+        // Additional safety: force controls update
+        this.controls.update();
+
         // Clear any target constraints to allow free rotation
         // Note: We don't set target to (0,0,0) here to avoid forcing focus on sun
+
+        console.log("Zoom out animation completed - controls should be free");
       }
     } else if (this.isTrackingPlanet && this.trackedPlanet) {
       // Update camera and controls to follow the tracked planet
@@ -505,21 +526,28 @@ export class InteractionSystem {
   }
 
   /**
-   * Close planet info and start tracking the planet
+   * Close planet info and zoom out with free controls
    */
   closeInfo() {
     const info = document.getElementById("planetInfo");
     info.style.display = "none";
     this.isPlanetInfoVisible = false;
 
-    // Start tracking the currently selected planet instead of zooming out
-    if (this.selectedPlanet && !this.selectedPlanet.isSun) {
-      this.startPlanetTracking();
-    } else {
-      // For sun or no selection, just free controls
-      this.isZoomingOut = true;
-      this.freeCameraControls();
-    }
+    // Stop any current tracking to prevent conflicts
+    this.stopPlanetTracking();
+
+    // Always start zoom out animation when closing info panel
+    this.isZoomingOut = true;
+
+    // Safety timeout: if zoom out doesn't complete in 5 seconds, force free controls
+    this.zoomOutTimeout = setTimeout(() => {
+      if (this.isZoomingOut) {
+        console.warn("Zoom out animation timeout - forcing free controls");
+        this.isZoomingOut = false;
+        this.freeCameraControls();
+        this.controls.update();
+      }
+    }, 5000);
 
     // Resume time control when closing planet details
     this.timeControl.resume();
