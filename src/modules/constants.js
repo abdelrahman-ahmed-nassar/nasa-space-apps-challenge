@@ -257,3 +257,16 @@ export const ORBITAL_COLORS = {
   neptune: 0x4169e1, // Deep blue (windy, distant)
   pluto: 0x8b7d6b, // Brownish (dwarf planet, distant)
 };
+
+// Real astronomical positions for October 1, 2025 (ephemeris data)
+// Using AU coordinates to calculate angles on circular orbits
+export const REAL_PLANET_POSITIONS = {
+  mercury: { x_au: 0.32284137074692437, y_au: -0.21358443514977146 },
+  venus: { x_au: 0.18764013712218895, y_au: 0.6931125380968133 },
+  earth: { x_au: -0.9814999658155844, y_au: -0.1927112850970309 },
+  mars: { x_au: 0.7849788940952534, y_au: -1.3335357111713996 },
+  jupiter: { x_au: -3.8872389466283987, y_au: 3.8666972079784557 },
+  saturn: { x_au: -9.161957927297915, y_au: -0.873633622344086 },
+  uranus: { x_au: -6.535682793390827, y_au: -17.524269187750815 },
+  neptune: { x_au: 16.728709733160688, y_au: 25.035222600641173 },
+};

@@ -5,6 +5,7 @@ import {
   MOON_CONFIGS,
   SUN_CONFIG,
   ORBITAL_COLORS,
+  REAL_PLANET_POSITIONS,
 } from "./constants.js";
 import { MaterialManager } from "./materials.js";
 
@@ -43,6 +44,37 @@ export class PlanetSystem {
   }
 
   /**
+   * Calculate real astronomical position on circular orbit
+   * Converts AU coordinates to angle on the existing circular orbit
+   */
+  calculateRealPosition(planetName, orbitRadius) {
+    const planetKey = planetName.toLowerCase();
+    const realPos = REAL_PLANET_POSITIONS[planetKey];
+
+    if (!realPos) {
+      console.warn(
+        `No real position data for ${planetName}, using default position`
+      );
+      return { x: orbitRadius, z: 0 };
+    }
+
+    // Calculate angle from AU coordinates (atan2 gives us the angle in radians)
+    const angle = Math.atan2(realPos.y_au, realPos.x_au);
+
+    // Convert angle to position on our circular orbit
+    const x = orbitRadius * Math.cos(angle);
+    const z = orbitRadius * Math.sin(angle);
+
+    console.log(
+      `${planetName} positioned at angle: ${((angle * 180) / Math.PI).toFixed(
+        1
+      )}° (${x.toFixed(1)}, ${z.toFixed(1)})`
+    );
+
+    return { x, z };
+  }
+
+  /**
    * Create a planet with all its components
    */
   createPlanet(
@@ -74,7 +106,11 @@ export class PlanetSystem {
     const planetSystem = new THREE.Group();
 
     planetSystem.add(planet);
-    planet.position.x = position;
+
+    // Calculate real astronomical position on the circular orbit
+    const realPosition = this.calculateRealPosition(planetName, position);
+    planet.position.x = realPosition.x;
+    planet.position.z = realPosition.z;
     planet.rotation.z = (tilt * Math.PI) / 180;
 
     // Create orbit path with planet-specific color
@@ -83,7 +119,7 @@ export class PlanetSystem {
     // Add ring system
     let Ring = null;
     if (ring) {
-      Ring = this.createRing(planetSystem, ring, position, tilt);
+      Ring = this.createRing(planetSystem, ring, realPosition, tilt);
     }
 
     // Add atmosphere
@@ -159,7 +195,7 @@ export class PlanetSystem {
   /**
    * Create ring system for a planet
    */
-  createRing(planetSystem, ringConfig, position, tilt) {
+  createRing(planetSystem, ringConfig, realPosition, tilt) {
     const RingGeo = new THREE.RingGeometry(
       ringConfig.innerRadius,
       ringConfig.outerRadius,
@@ -169,7 +205,8 @@ export class PlanetSystem {
     const Ring = new THREE.Mesh(RingGeo, RingMat);
 
     planetSystem.add(Ring);
-    Ring.position.x = position;
+    Ring.position.x = realPosition.x;
+    Ring.position.z = realPosition.z;
     Ring.rotation.x = -0.5 * Math.PI;
     Ring.rotation.y = (-tilt * Math.PI) / 180;
 
