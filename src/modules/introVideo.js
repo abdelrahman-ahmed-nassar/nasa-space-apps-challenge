@@ -102,21 +102,21 @@ export class IntroVideo {
       <div class="mission-control-ui">
         <div class="nasa-logo">
           <div class="nasa-text">NASA</div>
-          <div class="mission-subtitle">SPACE APPS CHALLENGE</div>
+          <div class="mission-subtitle">ASTEROID IMPACT SIMULATION</div>
         </div>
         
         <div class="mission-status">
           <div class="status-line">
-            <span class="status-label">MISSION STATUS:</span>
-            <span class="status-value mission-ready">READY FOR LAUNCH</span>
+            <span class="status-label">THREAT LEVEL:</span>
+            <span class="status-value mission-ready">IMPACTOR-2025 DETECTED</span>
           </div>
           <div class="status-line">
-            <span class="status-label">DESTINATION:</span>
-            <span class="status-value">SOLAR SYSTEM</span>
+            <span class="status-label">MISSION:</span>
+            <span class="status-value">IMPACT RISK ASSESSMENT</span>
           </div>
           <div class="status-line">
-            <span class="status-label">CREW STATUS:</span>
-            <span class="status-value">AWAITING COMMANDER</span>
+            <span class="status-label">SIMULATION STATUS:</span>
+            <span class="status-value">READY FOR ANALYSIS</span>
           </div>
         </div>
         
@@ -124,25 +124,25 @@ export class IntroVideo {
           <button class="launch-button">
             <div class="button-glow"></div>
             <div class="button-content">
-              <div class="launch-icon">🚀</div>
-              <div class="launch-text">BEGIN MISSION</div>
+              <div class="launch-icon">🌍</div>
+              <div class="launch-text">DEFEND EARTH</div>
             </div>
           </button>
-          <div class="launch-subtitle">Click to start your space journey</div>
+          <div class="launch-subtitle">Enter the asteroid impact simulation</div>
         </div>
         
         <div class="system-messages">
           <div class="message-line typing-animation">
-            <span class="message-prefix">[MISSION CONTROL]</span>
-            <span class="message-text">All systems nominal...</span>
+            <span class="message-prefix">[NEO TRACKING]</span>
+            <span class="message-text">Near-Earth asteroid trajectory calculated...</span>
           </div>
           <div class="message-line typing-animation delay-1">
-            <span class="message-prefix">[NAVIGATION]</span>
-            <span class="message-text">Solar system coordinates locked...</span>
+            <span class="message-prefix">[IMPACT ANALYSIS]</span>
+            <span class="message-text">Collision scenarios modeling initiated...</span>
           </div>
           <div class="message-line typing-animation delay-2">
-            <span class="message-prefix">[PROPULSION]</span>
-            <span class="message-text">Engines ready for interplanetary travel...</span>
+            <span class="message-prefix">[DEFENSE SYSTEMS]</span>
+            <span class="message-text">Mitigation strategies database loaded...</span>
           </div>
         </div>
       </div>
@@ -156,24 +156,20 @@ export class IntroVideo {
       // Add launch animation
       spaceOverlay.classList.add("launching");
 
-      // Play launch sound if video has audio
+      // Play video immediately with sound
       this.video.muted = false;
-
-      // Start countdown effect
-      this.showCountdownSequence(spaceOverlay).then(() => {
-        this.video
-          .play()
-          .then(() => {
-            console.log("Mission launched! Video started with sound");
-            setTimeout(() => {
-              spaceOverlay.remove();
-            }, 1000); // Allow time for launch animation
-          })
-          .catch((error) => {
-            console.error("Failed to start mission video:", error);
-            this.completeIntro();
-          });
-      });
+      this.video
+        .play()
+        .then(() => {
+          console.log("Mission launched! Video started with sound");
+          setTimeout(() => {
+            spaceOverlay.remove();
+          }, 1000); // Allow time for launch animation
+        })
+        .catch((error) => {
+          console.error("Failed to start mission video:", error);
+          this.completeIntro();
+        });
     };
 
     launchButton.addEventListener("click", startMission);
@@ -184,39 +180,6 @@ export class IntroVideo {
         e.preventDefault();
         startMission();
       }
-    });
-  }
-
-  /**
-   * Show countdown sequence before launching
-   */
-  async showCountdownSequence(overlay) {
-    return new Promise((resolve) => {
-      const countdownEl = document.createElement("div");
-      countdownEl.className = "countdown-sequence";
-      countdownEl.innerHTML = `
-        <div class="countdown-number">3</div>
-        <div class="countdown-text">MISSION LAUNCH IN...</div>
-      `;
-
-      overlay.appendChild(countdownEl);
-
-      let count = 3;
-      const countdownInterval = setInterval(() => {
-        count--;
-        if (count > 0) {
-          countdownEl.querySelector(".countdown-number").textContent = count;
-        } else {
-          countdownEl.querySelector(".countdown-number").textContent = "GO!";
-          countdownEl.querySelector(".countdown-text").textContent =
-            "LAUNCHING...";
-          clearInterval(countdownInterval);
-
-          setTimeout(() => {
-            resolve();
-          }, 500);
-        }
-      }, 800);
     });
   }
 
