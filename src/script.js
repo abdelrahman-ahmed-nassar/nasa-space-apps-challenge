@@ -3,6 +3,7 @@ import { PlanetSystem } from "./modules/planetSystem.js";
 import { TimeControl } from "./modules/timeControl.js";
 import { InteractionSystem } from "./modules/interactionSystem.js";
 import { AnimationSystem } from "./modules/animationSystem.js";
+import { IntroVideo } from "./modules/introVideo.js";
 
 /**
  * Solar System 3D Application
@@ -15,13 +16,31 @@ class SolarSystemApp {
     this.timeControl = null;
     this.interactionSystem = null;
     this.animationSystem = null;
+    this.introVideo = null;
+    this.isInitialized = false;
   }
 
   /**
-   * Initialize the entire application
+   * Initialize the intro video first
    */
-  async init() {
-    console.log("Initializing Solar System 3D Application...");
+  async start() {
+    console.log("🎬 Starting Solar System 3D Application with intro video...");
+
+    // Initialize intro video
+    this.introVideo = new IntroVideo();
+    this.introVideo.init(() => {
+      // This callback runs when intro is complete
+      this.initMainApp();
+    });
+  }
+
+  /**
+   * Initialize the main application after intro
+   */
+  async initMainApp() {
+    if (this.isInitialized) return;
+
+    console.log("🚀 Initializing main Solar System 3D Application...");
 
     try {
       // Initialize scene setup
@@ -84,11 +103,19 @@ class SolarSystemApp {
       this.animationSystem.start();
       console.log("✓ Animation system started");
 
-      console.log("🚀 Solar System 3D Application fully initialized!");
+      this.isInitialized = true;
+      console.log("🌌 Solar System 3D Application fully initialized!");
     } catch (error) {
-      console.error("❌ Error initializing application:", error);
+      console.error("❌ Error initializing main application:", error);
       throw error;
     }
+  }
+
+  /**
+   * Initialize the entire application (legacy method for compatibility)
+   */
+  async init() {
+    return this.start();
   }
 
   /**
@@ -123,7 +150,7 @@ class SolarSystemApp {
 async function startApplication() {
   try {
     const app = new SolarSystemApp();
-    await app.init();
+    await app.start(); // Changed from app.init() to app.start()
 
     // Make app available globally for debugging
     window.solarSystemApp = app;

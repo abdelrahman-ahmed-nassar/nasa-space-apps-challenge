@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <!-- Intro Video Overlay -->
+    <div id="introVideoOverlay" class="intro-video-overlay">
+      <video id="introVideo" class="intro-video">
+        <source src="intro-video.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <button type="button" id="skipIntroBtn" class="skip-intro-btn">
+        Skip Intro
+      </button>
+    </div>
+
     <div><script type="module" src="./script.js"></script></div>
     <script type="module" src="./navigation.js"></script>
 
@@ -46,7 +57,7 @@
         </svg>
 
         <!-- Speed Label -->
-        <div id="speedLabel" class="speed-label">REAL RATE</div>
+        <div id="speedLabel" class="speed-label">1 DAYS/S</div>
 
         <!-- Control Buttons (appear on hover) -->
         <div class="control-buttons">
