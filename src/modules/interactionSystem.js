@@ -31,6 +31,11 @@ export class InteractionSystem {
     this.offset = 0;
     this.isPlanetInfoVisible = false;
 
+    // Planet tracking state (follows planet after info card is closed)
+    this.isTrackingPlanet = false;
+    this.trackedPlanet = null;
+    this.cameraRelativePosition = new THREE.Vector3();
+
     // Zoom out state
     this.isZoomingOut = false;
     this.zoomOutTargetPosition = new THREE.Vector3(
@@ -143,7 +148,8 @@ export class InteractionSystem {
         this.isMovingTowardsPlanet = true;
       }
     } else {
-      // Clicked on empty space - free the camera controls
+      // Clicked on empty space - stop tracking and free camera controls
+      this.stopPlanetTracking();
       this.closeInfoNoZoomOut();
       this.freeCameraControls();
     }
@@ -253,7 +259,31 @@ export class InteractionSystem {
         // Clear any target constraints to allow free rotation
         // Note: We don't set target to (0,0,0) here to avoid forcing focus on sun
       }
+    } else if (this.isTrackingPlanet && this.trackedPlanet) {
+      // Update camera and controls to follow the tracked planet
+      this.updatePlanetTracking();
     }
+  }
+
+  /**
+   * Update camera tracking for the selected planet
+   */
+  updatePlanetTracking() {
+    if (!this.trackedPlanet || this.trackedPlanet.isSun) return;
+
+    // Get current planet position
+    const planetPosition = new THREE.Vector3();
+    this.trackedPlanet.planet.getWorldPosition(planetPosition);
+
+    // Instantly update camera position to follow the planet (no lerp delay)
+    // Don't touch controls.target - let user control where they look
+    const newCameraPosition = planetPosition
+      .clone()
+      .add(this.cameraRelativePosition);
+    this.camera.position.copy(newCameraPosition); // Instant following - no lerp
+
+    // Keep controls completely free - user can look anywhere, zoom, rotate
+    // No target constraints - total freedom of movement
   }
 
   /**
@@ -273,19 +303,21 @@ export class InteractionSystem {
   }
 
   /**
-   * Close planet info and zoom out to overview
+   * Close planet info and start tracking the planet
    */
   closeInfo() {
     const info = document.getElementById("planetInfo");
     info.style.display = "none";
     this.isPlanetInfoVisible = false;
-    this.isZoomingOut = true;
 
-    // Don't force target to sun - let user freely navigate
-    // this.controls.target.set(0, 0, 0); // Removed this line
-
-    // Free camera controls for unrestricted navigation
-    this.freeCameraControls();
+    // Start tracking the currently selected planet instead of zooming out
+    if (this.selectedPlanet && !this.selectedPlanet.isSun) {
+      this.startPlanetTracking();
+    } else {
+      // For sun or no selection, just free controls
+      this.isZoomingOut = true;
+      this.freeCameraControls();
+    }
 
     // Resume time control when closing planet details
     this.timeControl.resume();
@@ -299,8 +331,57 @@ export class InteractionSystem {
     info.style.display = "none";
     this.isPlanetInfoVisible = false;
 
+    // Stop any current tracking
+    this.stopPlanetTracking();
+
     // Resume time control when closing planet details to view another planet
     this.timeControl.resume();
+  }
+
+  /**
+   * Start tracking a planet's movement
+   */
+  startPlanetTracking() {
+    if (!this.selectedPlanet || this.selectedPlanet.isSun) return;
+
+    this.isTrackingPlanet = true;
+    this.trackedPlanet = this.selectedPlanet;
+
+    // Get planet position
+    const planetPosition = new THREE.Vector3();
+    this.selectedPlanet.planet.getWorldPosition(planetPosition);
+
+    // Position camera directly above the planet (like initial sun view)
+    // Use similar offset as the initial camera position relative to sun
+    const overheadPosition = new THREE.Vector3(
+      planetPosition.x - 175, // Same X offset as initial camera
+      planetPosition.y + 115, // Same Y offset (above)
+      planetPosition.z + 5 // Same Z offset as initial camera
+    );
+
+    // Set camera to overhead position
+    this.camera.position.copy(overheadPosition);
+
+    // Set controls target to the planet (directly below camera)
+    this.controls.target.copy(planetPosition);
+
+    // Store the relative offset for tracking (overhead view)
+    this.cameraRelativePosition.set(-175, 115, 5);
+
+    // Free camera controls but maintain tracking
+    this.freeCameraControls();
+
+    console.log(`Started overhead tracking of ${this.selectedPlanet.name}`);
+  }
+
+  /**
+   * Stop tracking a planet
+   */
+  stopPlanetTracking() {
+    this.isTrackingPlanet = false;
+    this.trackedPlanet = null;
+    this.cameraRelativePosition.set(0, 0, 0);
+    console.log("Stopped planet tracking");
   }
 
   /**
