@@ -81,16 +81,46 @@ export class AnimationSystem {
     const planets = this.planetSystem.getPlanets();
 
     // Define rotation and orbital speeds for each planet
+    // Orbital speeds are relative to Earth's orbital speed (29.78 km/s = 1.000 reference)
+    // Based on NASA data: https://nssdc.gsfc.nasa.gov/planetary/factsheet/
+    const baseOrbitSpeed = 0.001; // Earth's reference orbital speed
     const planetAnimationData = {
-      Mercury: { rotation: 0.001, orbit: 0.004 },
-      Venus: { rotation: 0.0005, orbit: 0.0006 },
-      Earth: { rotation: 0.005, orbit: 0.001 },
-      Mars: { rotation: 0.01, orbit: 0.0007 },
-      Jupiter: { rotation: 0.005, orbit: 0.0003 },
-      Saturn: { rotation: 0.01, orbit: 0.0002 },
-      Uranus: { rotation: 0.005, orbit: 0.0001 },
-      Neptune: { rotation: 0.005, orbit: 0.00008 },
-      Pluto: { rotation: 0.001, orbit: 0.00006 },
+      Mercury: {
+        rotation: 0.001,
+        orbit: baseOrbitSpeed * 1.59, // 47.36 km/s = 1.590 × Earth speed
+      },
+      Venus: {
+        rotation: -0.0005, // Venus rotates backwards (retrograde)
+        orbit: baseOrbitSpeed * 1.176, // 35.02 km/s = 1.176 × Earth speed
+      },
+      Earth: {
+        rotation: 0.005,
+        orbit: baseOrbitSpeed * 1.0, // 29.78 km/s = 1.000 × Earth speed (reference)
+      },
+      Mars: {
+        rotation: 0.01,
+        orbit: baseOrbitSpeed * 0.809, // 24.077 km/s = 0.809 × Earth speed
+      },
+      Jupiter: {
+        rotation: 0.005,
+        orbit: baseOrbitSpeed * 0.439, // 13.07 km/s = 0.439 × Earth speed
+      },
+      Saturn: {
+        rotation: 0.01,
+        orbit: baseOrbitSpeed * 0.325, // 9.69 km/s = 0.325 × Earth speed
+      },
+      Uranus: {
+        rotation: -0.005, // Uranus rotates on its side, effectively backwards
+        orbit: baseOrbitSpeed * 0.229, // 6.81 km/s = 0.229 × Earth speed
+      },
+      Neptune: {
+        rotation: 0.005,
+        orbit: baseOrbitSpeed * 0.182, // 5.43 km/s = 0.182 × Earth speed
+      },
+      Pluto: {
+        rotation: 0.001,
+        orbit: baseOrbitSpeed * 0.159, // 4.74 km/s = 0.159 × Earth speed
+      },
     };
 
     // Animate each planet
@@ -106,7 +136,8 @@ export class AnimationSystem {
         // Animate atmosphere if it exists (also follows rotation direction)
         if (planet.Atmosphere) {
           if (name === "Venus") {
-            planet.Atmosphere.rotateY(0.0005 * SETTINGS.acceleration);
+            // Venus atmosphere rotates backwards (retrograde) like the planet
+            planet.Atmosphere.rotateY(-0.0005 * SETTINGS.acceleration);
           } else if (name === "Earth") {
             planet.Atmosphere.rotateY(0.001 * SETTINGS.acceleration);
           }

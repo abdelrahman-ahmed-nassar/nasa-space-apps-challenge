@@ -352,11 +352,22 @@ export class TimeControl {
       );
 
       // Calculate the required accelerationOrbit so that Earth completes one orbit in exactly 365.25 simulation days
-      // For reverse time, this should be negative
-      const targetSecondsForOneOrbit = 365.25 / Math.abs(speedMultiplier);
-      const targetFramesForOneOrbit = targetSecondsForOneOrbit * 60; // Assuming 60 fps
-      const requiredAcceleration =
-        (Math.PI * 2) / (0.001 * targetFramesForOneOrbit);
+      // For a time speed of 1 month/second, Earth should complete orbit in 12 seconds
+      // For a time speed of 1 day/second, Earth should complete orbit in 365.25 seconds
+      const earthsOrbitDaysReal = 365.25;
+      const secondsForOneOrbitAtCurrentSpeed =
+        earthsOrbitDaysReal / Math.abs(speedMultiplier);
+
+      // Calculate required orbital acceleration per frame (assuming 60 FPS)
+      // Each frame, Earth should move: (2π radians) / (total frames for one orbit)
+      const framesPerSecond = 60;
+      const totalFramesForOneOrbit =
+        secondsForOneOrbitAtCurrentSpeed * framesPerSecond;
+      const radiansPerFrame = (Math.PI * 2) / totalFramesForOneOrbit;
+
+      // Since baseOrbitSpeed for Earth is 0.001, we need to calculate what multiplier gives us radiansPerFrame
+      const earthBaseOrbitSpeed = 0.001;
+      const requiredAcceleration = radiansPerFrame / earthBaseOrbitSpeed;
 
       // Apply direction multiplier for reverse time
       const directionMultiplier = speedMultiplier >= 0 ? 1 : -1;
