@@ -244,3 +244,16 @@ export const SUN_CONFIG = {
   size: 697 / 40, // 40 times smaller scale than earth
   emissiveIntensity: 1.9,
 };
+
+// Orbital path colors for each planet (inspired by their characteristics)
+export const ORBITAL_COLORS = {
+  mercury: 0x8c7853, // Brownish-gray (rocky, closest to sun)
+  venus: 0xffb649, // Golden yellow (thick atmosphere, hottest planet)
+  earth: 0x6b93d6, // Blue (water world)
+  mars: 0xcd5c5c, // Red (iron oxide surface)
+  jupiter: 0xffa500, // Orange (Great Red Spot, gas giant)
+  saturn: 0xfad5a5, // Pale gold (beautiful rings)
+  uranus: 0x4fd0e3, // Cyan (methane atmosphere)
+  neptune: 0x4169e1, // Deep blue (windy, distant)
+  pluto: 0x8b7d6b, // Brownish (dwarf planet, distant)
+};

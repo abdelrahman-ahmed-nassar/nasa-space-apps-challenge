@@ -1,6 +1,11 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { TEXTURES, MOON_CONFIGS, SUN_CONFIG } from "./constants.js";
+import {
+  TEXTURES,
+  MOON_CONFIGS,
+  SUN_CONFIG,
+  ORBITAL_COLORS,
+} from "./constants.js";
 import { MaterialManager } from "./materials.js";
 
 /**
@@ -72,8 +77,8 @@ export class PlanetSystem {
     planet.position.x = position;
     planet.rotation.z = (tilt * Math.PI) / 180;
 
-    // Create orbit path
-    this.createOrbitPath(planetSystem, position);
+    // Create orbit path with planet-specific color
+    this.createOrbitPath(planetSystem, position, planetName);
 
     // Add ring system
     let Ring = null;
@@ -121,9 +126,9 @@ export class PlanetSystem {
   }
 
   /**
-   * Create orbit path for a planet
+   * Create orbit path for a planet with custom color
    */
-  createOrbitPath(planetSystem, position) {
+  createOrbitPath(planetSystem, position, planetName) {
     const orbitPath = new THREE.EllipseCurve(
       0,
       0, // ax, aY
@@ -137,7 +142,15 @@ export class PlanetSystem {
 
     const pathPoints = orbitPath.getPoints(100);
     const orbitGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
-    const orbitMaterial = this.materialManager.createOrbitMaterial();
+
+    // Get planet-specific color from ORBITAL_COLORS
+    const planetKey = planetName.toLowerCase();
+    const orbitColor = ORBITAL_COLORS[planetKey] || 0xffffff;
+
+    const orbitMaterial = this.materialManager.createOrbitMaterial(
+      orbitColor,
+      0.15
+    );
     const orbit = new THREE.LineLoop(orbitGeometry, orbitMaterial);
     orbit.rotation.x = Math.PI / 2;
     planetSystem.add(orbit);

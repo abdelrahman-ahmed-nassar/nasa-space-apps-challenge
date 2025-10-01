@@ -127,13 +127,13 @@ export class MaterialManager {
   }
 
   /**
-   * Create orbit path material
+   * Create orbit path material with custom color
    */
-  createOrbitMaterial() {
+  createOrbitMaterial(color = 0xffffff, opacity = 0.15) {
     return new THREE.LineBasicMaterial({
-      color: 0xffffff,
+      color: color,
       transparent: true,
-      opacity: 0.03,
+      opacity: opacity,
     });
   }
 }
