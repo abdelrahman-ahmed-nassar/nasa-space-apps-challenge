@@ -74,15 +74,45 @@ export const SETTINGS = {
 // Time control configuration
 export const TIME_CONTROL_CONFIG = {
   speedModes: [
-    { label: "1 DAY/S", multiplier: 1, unit: "days" },
-    { label: "5 DAYS/S", multiplier: 5, unit: "days" },
-    { label: "1 WEEK/S", multiplier: 7, unit: "days" },
-    { label: "2 WEEKS/S", multiplier: 14, unit: "days" },
-    { label: "1 MTH/S", multiplier: 30, unit: "days" },
-    { label: "2 MTHS/S", multiplier: 60, unit: "days" },
-    { label: "6 MTHS/S", multiplier: 180, unit: "days" },
-    { label: "1 YEAR/S", multiplier: 365, unit: "days" },
+    // Reverse time modes (negative multipliers)
+    {
+      label: "-1 YEAR/S",
+      multiplier: -365,
+      unit: "days",
+      direction: "reverse",
+    },
+    {
+      label: "-6 MTHS/S",
+      multiplier: -180,
+      unit: "days",
+      direction: "reverse",
+    },
+    { label: "-2 MTHS/S", multiplier: -60, unit: "days", direction: "reverse" },
+    { label: "-1 MTH/S", multiplier: -30, unit: "days", direction: "reverse" },
+    {
+      label: "-2 WEEKS/S",
+      multiplier: -14,
+      unit: "days",
+      direction: "reverse",
+    },
+    { label: "-1 WEEK/S", multiplier: -7, unit: "days", direction: "reverse" },
+    { label: "-5 DAYS/S", multiplier: -5, unit: "days", direction: "reverse" },
+    { label: "-1 DAY/S", multiplier: -1, unit: "days", direction: "reverse" },
+
+    // Real rate (center position)
+    { label: "REAL RATE", multiplier: 0.1, unit: "days", direction: "real" },
+
+    // Forward time modes (positive multipliers)
+    { label: "+1 DAY/S", multiplier: 1, unit: "days", direction: "forward" },
+    { label: "+5 DAYS/S", multiplier: 5, unit: "days", direction: "forward" },
+    { label: "+1 WEEK/S", multiplier: 7, unit: "days", direction: "forward" },
+    { label: "+2 WEEKS/S", multiplier: 14, unit: "days", direction: "forward" },
+    { label: "+1 MTH/S", multiplier: 30, unit: "days", direction: "forward" },
+    { label: "+2 MTHS/S", multiplier: 60, unit: "days", direction: "forward" },
+    { label: "+6 MTHS/S", multiplier: 180, unit: "days", direction: "forward" },
+    { label: "+1 YEAR/S", multiplier: 365, unit: "days", direction: "forward" },
   ],
+  defaultSpeedIndex: 8, // REAL RATE is at index 8 (center position)
 };
 
 // Planet data for information display

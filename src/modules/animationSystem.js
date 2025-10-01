@@ -69,6 +69,7 @@ export class AnimationSystem {
   animateSun() {
     const sun = this.planetSystem.getSun();
     if (sun) {
+      // Sun rotation (handles reverse with SETTINGS.acceleration sign)
       sun.rotateY(0.001 * SETTINGS.acceleration);
     }
   }
@@ -96,13 +97,13 @@ export class AnimationSystem {
     Object.entries(planets).forEach(([name, planet]) => {
       const animData = planetAnimationData[name];
       if (animData) {
-        // Planet self-rotation
+        // Planet self-rotation (handles reverse with SETTINGS.acceleration sign)
         planet.planet.rotateY(animData.rotation * SETTINGS.acceleration);
 
-        // Planet orbital motion around sun
+        // Planet orbital motion around sun (handles reverse with SETTINGS.accelerationOrbit sign)
         planet.planet3d.rotateY(animData.orbit * SETTINGS.accelerationOrbit);
 
-        // Animate atmosphere if it exists
+        // Animate atmosphere if it exists (also follows rotation direction)
         if (planet.Atmosphere) {
           if (name === "Venus") {
             planet.Atmosphere.rotateY(0.0005 * SETTINGS.acceleration);
@@ -149,6 +150,9 @@ export class AnimationSystem {
         tiltAngle = (5 * Math.PI) / 180;
       }
 
+      // Moon orbital motion (handles reverse with SETTINGS.accelerationOrbit sign)
+      const orbitDirection = SETTINGS.accelerationOrbit >= 0 ? 1 : -1;
+
       const moonX =
         planet.planet.position.x +
         moon.orbitRadius *
@@ -166,6 +170,8 @@ export class AnimationSystem {
           Math.cos(tiltAngle);
 
       moon.mesh.position.set(moonX, moonY, moonZ);
+
+      // Moon self-rotation (handles reverse with SETTINGS.acceleration sign)
       moon.mesh.rotateY(0.01 * SETTINGS.acceleration);
     });
   }
@@ -180,6 +186,7 @@ export class AnimationSystem {
       if (moon.mesh) {
         const time = performance.now();
 
+        // Moon orbital motion (handles reverse with SETTINGS.accelerationOrbit sign)
         const moonX =
           mars.planet.position.x +
           moon.orbitRadius *
@@ -195,6 +202,8 @@ export class AnimationSystem {
             Math.sin(time * moon.orbitSpeed * SETTINGS.accelerationOrbit);
 
         moon.mesh.position.set(moonX, moonY, moonZ);
+
+        // Moon self-rotation (handles reverse with SETTINGS.acceleration sign)
         moon.mesh.rotateY(0.001 * SETTINGS.acceleration);
       }
     });
@@ -207,9 +216,10 @@ export class AnimationSystem {
     const asteroids = this.planetSystem.getAsteroids();
 
     asteroids.forEach((asteroid) => {
-      asteroid.rotation.y += 0.0001;
+      // Asteroid self-rotation (handles reverse with SETTINGS.acceleration sign)
+      asteroid.rotation.y += 0.0001 * (SETTINGS.acceleration >= 0 ? 1 : -1);
 
-      // Orbital motion around sun
+      // Orbital motion around sun (handles reverse with SETTINGS.accelerationOrbit sign)
       const orbitSpeed = 0.0001 * SETTINGS.accelerationOrbit;
       const cosOrbit = Math.cos(orbitSpeed);
       const sinOrbit = Math.sin(orbitSpeed);

@@ -639,11 +639,18 @@ body {
 }
 
 .date-text {
-  color: #ffffff;
+  color: #ffffff !important; /* Force white color in all states */
   font-family: "Arial", sans-serif;
   font-size: 16px;
   font-weight: normal;
   opacity: 0.9;
+}
+
+/* Ensure date text stays white in all time control states */
+.time-control-container.paused .date-text,
+.time-control-container.reverse .date-text,
+.time-control-container.real-rate .date-text {
+  color: #ffffff !important;
 }
 
 .curved-progress-container {
@@ -663,13 +670,31 @@ body {
 
 .speed-dot {
   cursor: pointer;
-  filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.8));
   transition: all 0.2s ease;
 }
 
 .speed-dot:hover {
   r: 10;
+}
+
+/* Forward time hover (green) */
+.time-control-container:not(.reverse):not(.real-rate) .speed-dot:hover {
   filter: drop-shadow(0 0 15px rgba(0, 255, 136, 1));
+}
+
+/* Reverse time hover (orange/red) */
+.time-control-container.reverse .speed-dot:hover {
+  filter: drop-shadow(0 0 15px rgba(255, 107, 53, 1));
+}
+
+/* Real rate hover (neutral white) */
+.time-control-container.real-rate .speed-dot:hover {
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+}
+
+/* Center marker for REAL RATE */
+#centerMarker {
+  transition: all 0.2s ease;
 }
 
 .speed-label {
@@ -677,13 +702,46 @@ body {
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  color: #00ff88;
+  color: #ffffff !important; /* Force white color in all states */
   font-family: "Arial", sans-serif;
   font-size: 14px;
   font-weight: bold;
-  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important; /* White glow */
   pointer-events: none;
-  transition: opacity 0.3s ease; /* Add smooth transition */
+  transition: all 0.3s ease; /* Add smooth transition */
+}
+
+/* Override all state-specific speed label colors to white */
+.time-control-container.reverse .speed-label,
+.time-control-container.real-rate .speed-label,
+.time-control-container.paused .speed-label {
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Reverse time styling (negative speeds) - keeping non-label styles */
+/* .time-control-container.reverse .speed-label {
+  color: #ff6b35;
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+} */
+
+.time-control-container.reverse .curved-progress-svg {
+  filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.3));
+}
+
+/* Real rate styling (center position) - keeping non-label styles */
+/* .time-control-container.real-rate .speed-label {
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+} */
+
+.time-control-container.real-rate .curved-progress-svg {
+  filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.3));
+}
+
+.time-control-container.real-rate #centerMarker {
+  stroke: rgba(0, 255, 136, 0.9);
+  fill: rgba(0, 255, 136, 0.7);
 }
 
 /* Slightly fade the speed label when not hovered for cleaner look */
@@ -740,11 +798,11 @@ body {
   transform: scale(0.98);
 }
 
-/* Paused state styling */
-.time-control-container.paused .speed-label {
+/* Paused state styling - keeping non-label styles */
+/* .time-control-container.paused .speed-label {
   color: #ff6b35;
   text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
-}
+} */
 
 .time-control-container.paused #progressArc {
   stroke: #ff6b35;

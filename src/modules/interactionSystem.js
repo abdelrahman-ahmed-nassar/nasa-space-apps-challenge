@@ -94,11 +94,55 @@ export class InteractionSystem {
   onMouseDown(event) {
     event.preventDefault();
 
+    // Check if click is on time control UI area to avoid auto-pausing
+    const timeControlContainer = document.getElementById(
+      "timeControlContainer"
+    );
+    if (timeControlContainer) {
+      const rect = timeControlContainer.getBoundingClientRect();
+      const isOnTimeControl =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+
+      if (isOnTimeControl) {
+        // Don't process planet clicks if clicking on time control UI
+        return;
+      }
+    }
+
     // Don't process planet clicks if planet info is currently visible
     if (this.isPlanetInfoVisible) {
       return;
     }
 
+    // Store initial mouse position to detect if this is a drag operation
+    this.mouseDownPosition = { x: event.clientX, y: event.clientY };
+    this.mouseDownTime = Date.now();
+
+    // Add mouseup listener to detect actual clicks vs drags
+    const handleMouseUp = (upEvent) => {
+      window.removeEventListener("mouseup", handleMouseUp);
+
+      const mouseMoved =
+        Math.abs(upEvent.clientX - this.mouseDownPosition.x) > 5 ||
+        Math.abs(upEvent.clientY - this.mouseDownPosition.y) > 5;
+      const timeElapsed = Date.now() - this.mouseDownTime;
+
+      // Only process as planet selection if it's a quick click without much movement
+      if (!mouseMoved && timeElapsed < 300) {
+        this.processPlanetSelection(upEvent);
+      }
+    };
+
+    window.addEventListener("mouseup", handleMouseUp);
+  }
+
+  /**
+   * Process actual planet selection (separated from mouse down to avoid camera drag interference)
+   */
+  processPlanetSelection(event) {
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 

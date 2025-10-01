@@ -7,7 +7,7 @@ import { TIME_CONTROL_CONFIG, SETTINGS } from "./constants.js";
 export class TimeControl {
   constructor() {
     this.isPaused = false;
-    this.currentSpeedIndex = 0;
+    this.currentSpeedIndex = TIME_CONTROL_CONFIG.defaultSpeedIndex; // Start at REAL RATE (center)
     this.speedModes = TIME_CONTROL_CONFIG.speedModes;
 
     // Simulation time tracking
@@ -138,6 +138,29 @@ export class TimeControl {
   }
 
   /**
+   * Check if currently in reverse time mode
+   */
+  isReversing() {
+    if (this.isPaused) return false;
+    return this.speedModes[this.currentSpeedIndex].multiplier < 0;
+  }
+
+  /**
+   * Check if currently in real rate mode
+   */
+  isRealRate() {
+    if (this.isPaused) return false;
+    return this.speedModes[this.currentSpeedIndex].direction === "real";
+  }
+
+  /**
+   * Get the center index (REAL RATE position)
+   */
+  getCenterIndex() {
+    return TIME_CONTROL_CONFIG.defaultSpeedIndex;
+  }
+
+  /**
    * Toggle pause state
    */
   togglePause() {
@@ -177,8 +200,12 @@ export class TimeControl {
 
     this.elements.speedLabel.textContent = this.getSpeedLabel();
 
-    // Update progress curve position
-    const progress = this.currentSpeedIndex / (this.speedModes.length - 1);
+    // Calculate position along the curved line
+    const centerIndex = this.getCenterIndex();
+    const totalModes = this.speedModes.length;
+
+    // Calculate progress based on current position relative to center
+    const progress = this.currentSpeedIndex / (totalModes - 1);
 
     // Calculate position along the curved line using quadratic Bezier curve
     const t = progress;
@@ -202,21 +229,92 @@ export class TimeControl {
     this.elements.speedIndicator.setAttribute("cx", cx);
     this.elements.speedIndicator.setAttribute("cy", cy);
 
-    // Update progress curve path - from start to current position
-    this.elements.progressArc.setAttribute(
-      "d",
-      `M 50 20 Q ${50 + (controlX - 50) * t} ${
-        20 + (controlY - 20) * t
-      } ${cx} ${cy}`
+    // Calculate center position for progress line
+    const centerProgress = centerIndex / (totalModes - 1);
+    const centerT = centerProgress;
+    const centerCx =
+      Math.pow(1 - centerT, 2) * startX +
+      2 * (1 - centerT) * centerT * controlX +
+      Math.pow(centerT, 2) * endX;
+    const centerCy =
+      Math.pow(1 - centerT, 2) * startY +
+      2 * (1 - centerT) * centerT * controlY +
+      Math.pow(centerT, 2) * endY;
+
+    // Update progress curve path - from center to current position
+    if (this.currentSpeedIndex < centerIndex) {
+      // Progress goes from current position to center (for reverse time)
+      this.elements.progressArc.setAttribute(
+        "d",
+        `M ${cx} ${cy} Q ${centerCx + (controlX - centerCx) * (centerT - t)} ${
+          centerCy + (controlY - centerCy) * (centerT - t)
+        } ${centerCx} ${centerCy}`
+      );
+      // Set reverse color (red/orange)
+      this.elements.progressArc.setAttribute("stroke", "#ff6b35");
+    } else if (this.currentSpeedIndex > centerIndex) {
+      // Progress goes from center to current position (for forward time)
+      this.elements.progressArc.setAttribute(
+        "d",
+        `M ${centerCx} ${centerCy} Q ${
+          centerCx + (controlX - centerCx) * (t - centerT)
+        } ${centerCy + (controlY - centerCy) * (t - centerT)} ${cx} ${cy}`
+      );
+      // Set forward color (green)
+      this.elements.progressArc.setAttribute("stroke", "#00ff88");
+    } else {
+      // At center position (REAL RATE) - no progress line visible
+      this.elements.progressArc.setAttribute(
+        "d",
+        `M ${centerCx} ${centerCy} Q ${centerCx} ${centerCy} ${centerCx} ${centerCy}`
+      );
+      // Set green color for real rate
+      this.elements.progressArc.setAttribute(
+        "stroke",
+        "rgba(0, 255, 136, 0.6)"
+      );
+    }
+
+    // Update speed indicator color and glow based on direction
+    if (!this.isPaused) {
+      // Only set colors when not paused - let CSS handle paused state
+      if (this.isReversing()) {
+        this.elements.speedIndicator.setAttribute("fill", "#ff6b35");
+        this.elements.speedIndicator.style.filter =
+          "drop-shadow(0 0 8px rgba(255, 107, 53, 0.8))";
+      } else if (this.isRealRate()) {
+        this.elements.speedIndicator.setAttribute("fill", "#00ff88"); // Green color for real rate
+        this.elements.speedIndicator.style.filter =
+          "drop-shadow(0 0 8px rgba(0, 255, 136, 0.8))";
+      } else {
+        this.elements.speedIndicator.setAttribute("fill", "#00ff88");
+        this.elements.speedIndicator.style.filter =
+          "drop-shadow(0 0 8px rgba(0, 255, 136, 0.8))";
+      }
+    } else {
+      // Clear inline styles when paused to let CSS take over
+      this.elements.speedIndicator.style.filter = "";
+    }
+
+    // Update paused state and direction classes
+    this.elements.timeControlContainer.classList.remove(
+      "paused",
+      "reverse",
+      "real-rate"
     );
 
-    // Update paused state
     if (this.isPaused) {
       this.elements.timeControlContainer.classList.add("paused");
       this.elements.playPauseBtn.innerHTML = "&#9654;"; // Play symbol
     } else {
-      this.elements.timeControlContainer.classList.remove("paused");
       this.elements.playPauseBtn.innerHTML = "&#9208;"; // Pause symbol
+
+      // Add direction-specific classes
+      if (this.isReversing()) {
+        this.elements.timeControlContainer.classList.add("reverse");
+      } else if (this.isRealRate()) {
+        this.elements.timeControlContainer.classList.add("real-rate");
+      }
     }
   }
 
@@ -233,7 +331,7 @@ export class TimeControl {
 
       // Calculate orbital progression based on simulation time
       const radiansPerDay = (Math.PI * 2) / 365.25; // How many radians Earth moves per day
-      const radiansPerSecond = radiansPerDay * speedMultiplier; // Scale by current speed
+      const radiansPerSecond = radiansPerDay * speedMultiplier; // Scale by current speed (can be negative)
 
       // Update Earth's orbital angle based on real time elapsed
       this.earthOrbitAngle += radiansPerSecond * deltaTime;
@@ -254,14 +352,18 @@ export class TimeControl {
       );
 
       // Calculate the required accelerationOrbit so that Earth completes one orbit in exactly 365.25 simulation days
-      const targetSecondsForOneOrbit = 365.25 / speedMultiplier;
+      // For reverse time, this should be negative
+      const targetSecondsForOneOrbit = 365.25 / Math.abs(speedMultiplier);
       const targetFramesForOneOrbit = targetSecondsForOneOrbit * 60; // Assuming 60 fps
       const requiredAcceleration =
         (Math.PI * 2) / (0.001 * targetFramesForOneOrbit);
 
-      // Update settings for planets based on time speed
-      SETTINGS.accelerationOrbit = requiredAcceleration;
-      SETTINGS.acceleration = speedMultiplier;
+      // Apply direction multiplier for reverse time
+      const directionMultiplier = speedMultiplier >= 0 ? 1 : -1;
+
+      // Update settings for planets based on time speed and direction
+      SETTINGS.accelerationOrbit = requiredAcceleration * directionMultiplier;
+      SETTINGS.acceleration = Math.abs(speedMultiplier) * directionMultiplier;
     } else {
       SETTINGS.accelerationOrbit = 0;
       SETTINGS.acceleration = 0;

@@ -41,10 +41,20 @@
           <!-- Progress curved line (downward curve) -->
           <path
             id="progressArc"
-            d="M 50 20 Q 125 40 200 40"
+            d="M 200 40 Q 200 40 200 40"
             fill="none"
             stroke="#00ff88"
             stroke-width="4"
+          />
+          <!-- Center marker for REAL RATE -->
+          <circle
+            id="centerMarker"
+            cx="200"
+            cy="40"
+            r="4"
+            fill="rgba(255,255,255,0.6)"
+            stroke="rgba(255,255,255,0.8)"
+            stroke-width="2"
           />
           <!-- Time speed indicator dot -->
           <circle
@@ -58,13 +68,17 @@
         </svg>
 
         <!-- Speed Label -->
-        <div id="speedLabel" class="speed-label">1 DAYS/S</div>
+        <div id="speedLabel" class="speed-label">REAL RATE</div>
 
         <!-- Control Buttons (appear on hover) -->
         <div class="control-buttons">
-          <button id="prevSpeed" class="control-btn prev-btn">&#9664;</button>
+          <button id="prevSpeed" class="control-btn prev-btn">
+            &#9664;&#9664;
+          </button>
           <button id="playPause" class="control-btn play-btn">&#9208;</button>
-          <button id="nextSpeed" class="control-btn next-btn">&#9654;</button>
+          <button id="nextSpeed" class="control-btn next-btn">
+            &#9654;&#9654;
+          </button>
         </div>
       </div>
     </div>
