@@ -77,6 +77,38 @@ export class InteractionSystem {
   setupGlobalFunctions() {
     // Make closeInfo function globally accessible for HTML onclick
     window.closeInfo = () => this.closeInfo();
+
+    // Initialize tab functionality
+    this.initializeTabs();
+  }
+
+  /**
+   * Initialize tab switching functionality
+   */
+  initializeTabs() {
+    document.addEventListener("click", (event) => {
+      if (event.target.classList.contains("tab-btn")) {
+        const tabId = event.target.getAttribute("data-tab");
+        this.switchTab(tabId);
+      }
+    });
+  }
+
+  /**
+   * Switch between tabs in planet info panel
+   */
+  switchTab(targetTab) {
+    // Remove active class from all tabs and panels
+    document
+      .querySelectorAll(".tab-btn")
+      .forEach((btn) => btn.classList.remove("active"));
+    document
+      .querySelectorAll(".tab-panel")
+      .forEach((panel) => panel.classList.remove("active"));
+
+    // Add active class to clicked tab and corresponding panel
+    document.querySelector(`[data-tab="${targetTab}"]`).classList.add("active");
+    document.getElementById(`tab-${targetTab}`).classList.add("active");
   }
 
   /**
@@ -336,14 +368,140 @@ export class InteractionSystem {
   showPlanetInfo(planetName) {
     const info = document.getElementById("planetInfo");
     const name = document.getElementById("planetName");
-    const details = document.getElementById("planetDetails");
-
-    name.innerText = planetName;
     const planetData = PLANET_DATA[planetName];
-    details.innerText = `Radius: ${planetData.radius}\nTilt: ${planetData.tilt}\nRotation: ${planetData.rotation}\nOrbit: ${planetData.orbit}\nDistance: ${planetData.distance}\nMoons: ${planetData.moons}\nInfo: ${planetData.info}`;
+
+    // Update header
+    name.innerText = planetName;
+    const planetType = document.getElementById("planetType");
+    planetType.innerText = planetName === "Sun" ? "Star" : "Planet";
+
+    // Update planet type indicator dot color
+    const planetTypeDot = document.querySelector(".planet-type-dot");
+    const planetColors = {
+      Sun: "#FFD700",
+      Mercury: "#8C7853",
+      Venus: "#FFC649",
+      Earth: "#4A9EFF",
+      Mars: "#CD5C5C",
+      Jupiter: "#D8A260",
+      Saturn: "#FAE5A3",
+      Uranus: "#4FD0E7",
+      Neptune: "#4169E1",
+      Pluto: "#8C6239",
+    };
+    planetTypeDot.style.backgroundColor = planetColors[planetName] || "#4A9EFF";
+
+    // Update info cards
+    document.getElementById("planetRadius").textContent = planetData.radius;
+    document.getElementById("planetTilt").textContent = planetData.tilt;
+    document.getElementById("planetRotation").textContent = planetData.rotation;
+    document.getElementById("planetOrbit").textContent = planetData.orbit;
+    document.getElementById("planetDistance").textContent = planetData.distance;
+    document.getElementById("planetMoons").textContent = planetData.moons;
+
+    // Update related items based on planet
+    this.updateRelatedItems(planetName);
+
+    // Reset to first tab
+    this.switchTab("info");
 
     info.style.display = "block";
     this.isPlanetInfoVisible = true;
+  }
+
+  /**
+   * Update related missions and satellites for each planet
+   */
+  updateRelatedItems(planetName) {
+    const relatedMissions = document.getElementById("relatedMissions");
+    const relatedMoons = document.getElementById("relatedMoons");
+
+    // Clear existing content
+    relatedMissions.innerHTML = "";
+    relatedMoons.innerHTML = "";
+
+    // Planet-specific missions and satellites
+    const planetRelated = {
+      Sun: {
+        missions: ["Parker Solar Probe", "Solar Orbiter", "SOHO"],
+        moons: [],
+      },
+      Mercury: {
+        missions: ["MESSENGER", "BepiColombo"],
+        moons: [],
+      },
+      Venus: {
+        missions: ["Magellan", "Venus Express", "Akatsuki"],
+        moons: [],
+      },
+      Earth: {
+        missions: [
+          "International Space Station",
+          "Hubble Space Telescope",
+          "James Webb Space Telescope",
+        ],
+        moons: ["Moon"],
+      },
+      Mars: {
+        missions: [
+          "Perseverance Rover",
+          "Curiosity Rover",
+          "Mars Reconnaissance Orbiter",
+        ],
+        moons: ["Phobos", "Deimos"],
+      },
+      Jupiter: {
+        missions: ["Juno", "Galileo", "Europa Clipper"],
+        moons: ["Io", "Europa", "Ganymede", "Callisto"],
+      },
+      Saturn: {
+        missions: ["Cassini-Huygens", "Dragonfly"],
+        moons: ["Titan", "Enceladus", "Mimas", "Iapetus"],
+      },
+      Uranus: {
+        missions: ["Voyager 2"],
+        moons: ["Titania", "Oberon", "Umbriel", "Ariel"],
+      },
+      Neptune: {
+        missions: ["Voyager 2"],
+        moons: ["Triton", "Nereid"],
+      },
+      Pluto: {
+        missions: ["New Horizons"],
+        moons: ["Charon", "Nix", "Hydra"],
+      },
+    };
+
+    const data = planetRelated[planetName] || { missions: [], moons: [] };
+
+    // Add missions
+    data.missions.forEach((mission) => {
+      const item = document.createElement("div");
+      item.className = "related-item";
+      item.innerHTML = `
+        <span class="related-icon">🛰️</span>
+        <span class="related-name">${mission}</span>
+      `;
+      relatedMissions.appendChild(item);
+    });
+
+    // Add moons
+    data.moons.forEach((moon) => {
+      const item = document.createElement("div");
+      item.className = "related-item";
+      item.innerHTML = `
+        <span class="related-icon">🌙</span>
+        <span class="related-name">${moon}</span>
+      `;
+      relatedMoons.appendChild(item);
+    });
+
+    // Hide sections if empty
+    const missionsSection = relatedMissions.closest(".related-section");
+    const moonsSection = relatedMoons.closest(".related-section");
+
+    missionsSection.style.display = data.missions.length > 0 ? "block" : "none";
+    moonsSection.style.display = data.moons.length > 0 ? "block" : "none";
   }
 
   /**

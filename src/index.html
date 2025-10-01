@@ -85,9 +85,85 @@
 
     <div id="planetInfo" class="planet-info">
       <div class="planet-info-content">
-        <span class="close-btn" onclick="closeInfo()">&times;</span>
-        <h2 id="planetName"></h2>
-        <p id="planetDetails"></p>
+        <div class="planet-info-header">
+          <div class="planet-header-left">
+            <h2 id="planetName">Earth</h2>
+            <div class="planet-type-indicator">
+              <span class="planet-type-dot"></span>
+              <span id="planetType">Planet</span>
+            </div>
+          </div>
+          <span class="close-btn" onclick="closeInfo()">&times;</span>
+        </div>
+
+        <div class="planet-tabs">
+          <button class="tab-btn active" data-tab="info">
+            <i class="tab-icon">📋</i>
+            Info
+          </button>
+          <button class="tab-btn" data-tab="related">
+            <i class="tab-icon">🛰️</i>
+            Related
+          </button>
+        </div>
+
+        <div class="tab-content">
+          <!-- Info Tab -->
+          <div id="tab-info" class="tab-panel active">
+            <div class="info-cards">
+              <div class="info-card">
+                <div class="info-label">Radius</div>
+                <div class="info-value" id="planetRadius">6,371 km</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Tilt</div>
+                <div class="info-value" id="planetTilt">23.5°</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Rotation</div>
+                <div class="info-value" id="planetRotation">24 hours</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Orbit</div>
+                <div class="info-value" id="planetOrbit">365 days</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Distance</div>
+                <div class="info-value" id="planetDistance">150 million km</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Moons</div>
+                <div class="info-value" id="planetMoons">1 (Moon)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Related Tab -->
+          <div id="tab-related" class="tab-panel">
+            <div class="related-section">
+              <h3>Missions & Satellites</h3>
+              <div class="related-items" id="relatedMissions">
+                <div class="related-item">
+                  <span class="related-icon">🛰️</span>
+                  <span class="related-name">International Space Station</span>
+                </div>
+                <div class="related-item">
+                  <span class="related-icon">🛰️</span>
+                  <span class="related-name">Hubble Space Telescope</span>
+                </div>
+              </div>
+            </div>
+            <div class="related-section">
+              <h3>Natural Satellites</h3>
+              <div class="related-items" id="relatedMoons">
+                <div class="related-item">
+                  <span class="related-icon">🌙</span>
+                  <span class="related-name">Moon</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </body>
