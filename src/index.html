@@ -5,18 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Solar System</title>
     <link rel="stylesheet" href="style.css" />
-    <style>
-      #gui-container {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 10;
-      }
-    </style>
   </head>
   <body>
-    <div id="gui-container"></div>
     <div><script type="module" src="./script.js"></script></div>
+
+    <!-- Time Control Bar -->
+    <div id="timeControlContainer" class="time-control-container">
+      <div class="time-display">
+        <div id="currentDate" class="date-text">OCT 01, 2025</div>
+      </div>
+
+      <div class="curved-progress-container">
+        <svg class="curved-progress-svg" viewBox="0 0 400 80">
+          <!-- Background curved line (downward curve) -->
+          <path
+            id="backgroundArc"
+            d="M 50 20 Q 200 60 350 20"
+            fill="none"
+            stroke="rgba(255,255,255,0.2)"
+            stroke-width="3"
+          />
+          <!-- Progress curved line (downward curve) -->
+          <path
+            id="progressArc"
+            d="M 50 20 Q 125 40 200 40"
+            fill="none"
+            stroke="#00ff88"
+            stroke-width="4"
+          />
+          <!-- Time speed indicator dot -->
+          <circle
+            id="speedIndicator"
+            cx="200"
+            cy="40"
+            r="8"
+            fill="#00ff88"
+            class="speed-dot"
+          />
+        </svg>
+
+        <!-- Speed Label -->
+        <div id="speedLabel" class="speed-label">REAL RATE</div>
+
+        <!-- Control Buttons (appear on hover) -->
+        <div class="control-buttons">
+          <button id="prevSpeed" class="control-btn prev-btn">&#9664;</button>
+          <button id="playPause" class="control-btn play-btn">&#9208;</button>
+          <button id="nextSpeed" class="control-btn next-btn">&#9654;</button>
+        </div>
+      </div>
+    </div>
+
     <div id="planetInfo" class="planet-info">
       <div class="planet-info-content">
         <span class="close-btn" onclick="closeInfo()">&times;</span>
@@ -24,8 +63,7 @@
         <p id="planetDetails"></p>
       </div>
     </div>
-    <div id="dateIndicator" class="date-indicator">
-      <span id="currentDate">Year: 2025</span>
-    </div>
+
+    <!-- Remove the old date indicator since we now have it in the time control -->
   </body>
 </html>

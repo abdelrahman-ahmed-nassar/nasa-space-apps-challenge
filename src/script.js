@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import * as dat from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
@@ -107,11 +106,6 @@ scene.background = cubeTextureLoader.load([
   bgTexture2,
 ]);
 
-// ******  CONTROLS  ******
-const gui = new dat.GUI({ autoPlace: false });
-const customContainer = document.getElementById("gui-container");
-customContainer.appendChild(gui.domElement);
-
 // ****** SETTINGS FOR INTERACTIVE CONTROLS  ******
 const settings = {
   accelerationOrbit: 1,
@@ -119,16 +113,249 @@ const settings = {
   sunIntensity: 1.9,
 };
 
-// ****** YEAR TRACKING SYSTEM ******
-let currentYear = 2025; // Starting year
-let earthOrbitPosition = 0; // Track Earth's orbital position in radians
-let lastEarthPosition = 0; // Previous Earth orbital position to detect full orbit
+// ****** TIME CONTROL SYSTEM ******
+const timeControl = {
+  isPaused: false,
+  currentSpeedIndex: 0,
+  speedModes: [
+    { label: "1 DAY/S", multiplier: 1, unit: "days" },
+    { label: "5 DAYS/S", multiplier: 5, unit: "days" },
+    { label: "1 WEEK/S", multiplier: 7, unit: "days" },
+    { label: "2 WEEKS/S", multiplier: 14, unit: "days" },
+    { label: "1 MTH/S", multiplier: 30, unit: "days" },
+    { label: "2 MTHS/S", multiplier: 60, unit: "days" },
+    { label: "6 MTHS/S", multiplier: 180, unit: "days" },
+    { label: "1 YEAR/S", multiplier: 365, unit: "days" },
+  ],
 
-gui.add(settings, "accelerationOrbit", 0, 10).onChange((value) => {});
-gui.add(settings, "acceleration", 0, 10).onChange((value) => {});
-gui.add(settings, "sunIntensity", 1, 10).onChange((value) => {
-  sunMat.emissiveIntensity = value;
-});
+  getCurrentSpeed() {
+    if (this.isPaused) return 0;
+    return this.speedModes[this.currentSpeedIndex].multiplier;
+  },
+
+  getSpeedLabel() {
+    if (this.isPaused) return "PAUSED";
+    return this.speedModes[this.currentSpeedIndex].label;
+  },
+};
+
+// Current simulation time
+let simulationDate = new Date(2025, 9, 1, 6, 39, 36); // Oct 1, 2025, 06:39:36
+let lastFrameTime = performance.now();
+let earthOrbitAngle = 0; // Track Earth's orbital angle in radians
+let startingDate = new Date(2025, 9, 1); // Starting date for synchronization
+let startingOrbitAngle = 0; // Earth's orbital position at the starting date
+let currentDateElement; // Global reference to date display element
+
+// Global references to time control elements
+let speedLabel, playPauseBtn, speedIndicator, progressArc, timeControlContainer;
+
+// Global function to update time control UI
+function updateTimeControlUI() {
+  if (
+    !speedLabel ||
+    !playPauseBtn ||
+    !speedIndicator ||
+    !progressArc ||
+    !timeControlContainer
+  ) {
+    return; // Exit if elements aren't initialized yet
+  }
+
+  speedLabel.textContent = timeControl.getSpeedLabel();
+
+  // Update progress curve position
+  const progress =
+    timeControl.currentSpeedIndex / (timeControl.speedModes.length - 1);
+
+  // Calculate position along the curved line using quadratic Bezier curve
+  // Control points: Start(50, 20), Control(200, 60), End(350, 20)
+  const t = progress; // parameter along curve (0 to 1)
+  const startX = 50,
+    startY = 20;
+  const controlX = 200,
+    controlY = 60;
+  const endX = 350,
+    endY = 20;
+
+  // Quadratic Bezier curve formula: B(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
+  const cx =
+    Math.pow(1 - t, 2) * startX +
+    2 * (1 - t) * t * controlX +
+    Math.pow(t, 2) * endX;
+  const cy =
+    Math.pow(1 - t, 2) * startY +
+    2 * (1 - t) * t * controlY +
+    Math.pow(t, 2) * endY;
+
+  speedIndicator.setAttribute("cx", cx);
+  speedIndicator.setAttribute("cy", cy);
+
+  // Update progress curve path - from start to current position
+  progressArc.setAttribute(
+    "d",
+    `M 50 20 Q ${50 + (controlX - 50) * t} ${
+      20 + (controlY - 20) * t
+    } ${cx} ${cy}`
+  );
+
+  // Update paused state
+  if (timeControl.isPaused) {
+    timeControlContainer.classList.add("paused");
+    playPauseBtn.innerHTML = "&#9654;"; // Play symbol
+  } else {
+    timeControlContainer.classList.remove("paused");
+    playPauseBtn.innerHTML = "&#9208;"; // Pause symbol
+  }
+}
+
+// Initialize time control UI
+function initTimeControl() {
+  speedLabel = document.getElementById("speedLabel");
+  const prevBtn = document.getElementById("prevSpeed");
+  playPauseBtn = document.getElementById("playPause");
+  const nextBtn = document.getElementById("nextSpeed");
+  speedIndicator = document.getElementById("speedIndicator");
+  progressArc = document.getElementById("progressArc");
+  timeControlContainer = document.getElementById("timeControlContainer");
+  currentDateElement = document.getElementById("currentDate"); // Assign to global variable
+
+  // Event listeners
+  prevBtn.addEventListener("click", () => {
+    if (timeControl.currentSpeedIndex > 0) {
+      timeControl.currentSpeedIndex--;
+      updateTimeControlUI();
+    }
+  });
+
+  nextBtn.addEventListener("click", () => {
+    if (timeControl.currentSpeedIndex < timeControl.speedModes.length - 1) {
+      timeControl.currentSpeedIndex++;
+      updateTimeControlUI();
+    }
+  });
+
+  playPauseBtn.addEventListener("click", () => {
+    timeControl.isPaused = !timeControl.isPaused;
+    playPauseBtn.textContent = timeControl.isPaused ? "▶" : "⏸";
+    updateTimeControlUI();
+  });
+
+  // Dragging functionality for speed indicator
+  let isDragging = false;
+
+  speedIndicator.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    e.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+
+    const svg = document.querySelector(".curved-progress-svg");
+    const rect = svg.getBoundingClientRect();
+
+    // Get mouse position relative to SVG
+    const mouseX = e.clientX - rect.left;
+
+    // Clamp mouseX to the curve bounds (50 to 350)
+    const clampedX = Math.max(50, Math.min(350, mouseX));
+
+    // Calculate progress based on X position (0 to 1)
+    const progress = (clampedX - 50) / (350 - 50);
+
+    timeControl.currentSpeedIndex = Math.round(
+      progress * (timeControl.speedModes.length - 1)
+    );
+
+    updateTimeControlUI();
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+  });
+
+  // Initial UI update
+  updateTimeControlUI();
+}
+
+// Update time display
+function updateTimeDisplay() {
+  if (!currentDateElement) return;
+
+  const months = [
+    "JAN",
+    "FEB",
+    "MAR",
+    "APR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AUG",
+    "SEP",
+    "OCT",
+    "NOV",
+    "DEC",
+  ];
+
+  const month = months[simulationDate.getMonth()];
+  const day = simulationDate.getDate().toString().padStart(2, "0");
+  const year = simulationDate.getFullYear();
+
+  const newText = `${month} ${day}, ${year}`;
+
+  currentDateElement.textContent = newText;
+}
+
+// Update simulation time
+function updateSimulationTime() {
+  const currentTime = performance.now();
+  const deltaTime = (currentTime - lastFrameTime) / 1000; // Convert to seconds
+  lastFrameTime = currentTime;
+
+  if (!timeControl.isPaused) {
+    const speedMultiplier = timeControl.getCurrentSpeed();
+
+    // Calculate orbital progression based on simulation time
+    // speedMultiplier is days per second, Earth takes 365.25 days for one orbit (2π radians)
+    const radiansPerDay = (Math.PI * 2) / 365.25; // How many radians Earth moves per day
+    const radiansPerSecond = radiansPerDay * speedMultiplier; // Scale by current speed
+
+    // Update Earth's orbital angle based on real time elapsed
+    earthOrbitAngle += radiansPerSecond * deltaTime;
+
+    // Calculate how many complete orbits Earth has made since the starting point
+    const totalOrbitAngle = earthOrbitAngle - startingOrbitAngle;
+
+    // Convert total orbital angle to years (2π radians = 1 year)
+    const yearsElapsed = totalOrbitAngle / (Math.PI * 2);
+
+    // Convert years to days
+    const daysElapsed = yearsElapsed * 365.25; // Using 365.25 for leap years
+
+    // Calculate the new simulation date
+    const millisecondsElapsed = daysElapsed * 24 * 60 * 60 * 1000;
+    simulationDate = new Date(startingDate.getTime() + millisecondsElapsed);
+
+    // Calculate the required accelerationOrbit so that Earth completes one orbit in exactly 365.25 simulation days
+    // Earth rotates 0.001 * settings.accelerationOrbit radians per frame
+    // At 60 fps, Earth should complete 2π radians in (365.25 / speedMultiplier) real seconds
+    const targetSecondsForOneOrbit = 365.25 / speedMultiplier;
+    const targetFramesForOneOrbit = targetSecondsForOneOrbit * 60; // Assuming 60 fps
+    const requiredAcceleration =
+      (Math.PI * 2) / (0.001 * targetFramesForOneOrbit);
+
+    // Update settings for planets based on time speed
+    settings.accelerationOrbit = requiredAcceleration;
+    settings.acceleration = speedMultiplier;
+  } else {
+    settings.accelerationOrbit = 0;
+    settings.acceleration = 0;
+  }
+
+  // Always update the time display
+  updateTimeDisplay();
+}
 
 // mouse movement
 const raycaster = new THREE.Raycaster();
@@ -145,9 +372,15 @@ let selectedPlanet = null;
 let isMovingTowardsPlanet = false;
 let targetCameraPosition = new THREE.Vector3();
 let offset;
+let isPlanetInfoVisible = false; // Track if planet info card is currently displayed
 
 function onDocumentMouseDown(event) {
   event.preventDefault();
+
+  // Don't process planet clicks if planet info is currently visible
+  if (isPlanetInfoVisible) {
+    return;
+  }
 
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -161,7 +394,14 @@ function onDocumentMouseDown(event) {
     if (selectedPlanet) {
       closeInfoNoZoomOut();
 
-      settings.accelerationOrbit = 0; // Stop orbital movement
+      // Automatically pause time control immediately when planet is clicked
+      if (!timeControl.isPaused) {
+        timeControl.isPaused = true;
+        if (playPauseBtn) {
+          playPauseBtn.textContent = "▶"; // Update button to show play symbol
+        }
+        updateTimeControlUI();
+      }
 
       // Update camera to look at the selected planet
       const planetPosition = new THREE.Vector3();
@@ -227,6 +467,7 @@ function showPlanetInfo(planet) {
   details.innerText = `Radius: ${planetData[planet].radius}\nTilt: ${planetData[planet].tilt}\nRotation: ${planetData[planet].rotation}\nOrbit: ${planetData[planet].orbit}\nDistance: ${planetData[planet].distance}\nMoons: ${planetData[planet].moons}\nInfo: ${planetData[planet].info}`;
 
   info.style.display = "block";
+  isPlanetInfoVisible = true; // Set flag to prevent planet clicks while info is visible
 }
 let isZoomingOut = false;
 let zoomOutTargetPosition = new THREE.Vector3(-175, 115, 5);
@@ -234,30 +475,38 @@ let zoomOutTargetPosition = new THREE.Vector3(-175, 115, 5);
 function closeInfo() {
   var info = document.getElementById("planetInfo");
   info.style.display = "none";
-  settings.accelerationOrbit = 1;
+  isPlanetInfoVisible = false; // Reset flag to allow planet clicks again
   isZoomingOut = true;
   controls.target.set(0, 0, 0);
+
+  // Resume time control when closing planet details
+  if (timeControl.isPaused) {
+    timeControl.isPaused = false;
+    const playPauseBtn = document.getElementById("playPause");
+    if (playPauseBtn) {
+      playPauseBtn.textContent = "⏸"; // Update button to show pause symbol
+    }
+    updateTimeControlUI();
+  }
 }
 window.closeInfo = closeInfo;
 // close info when clicking another planet
 function closeInfoNoZoomOut() {
   var info = document.getElementById("planetInfo");
   info.style.display = "none";
-  settings.accelerationOrbit = 1;
-}
+  isPlanetInfoVisible = false; // Reset flag to allow planet clicks again
 
-// ******  DATE DISPLAY FUNCTIONS  ******
-function updateDateDisplay() {
-  const dateElement = document.getElementById("currentDate");
-  if (dateElement) {
-    dateElement.innerText = `Year: ${currentYear}`;
+  // Resume time control when closing planet details to view another planet
+  if (timeControl.isPaused) {
+    timeControl.isPaused = false;
+    const playPauseBtn = document.getElementById("playPause");
+    if (playPauseBtn) {
+      playPauseBtn.textContent = "⏸"; // Update button to show pause symbol
+    }
+    updateTimeControlUI();
   }
 }
 
-// Initialize date display
-function initializeDateDisplay() {
-  updateDateDisplay();
-}
 // ******  SUN  ******
 let sunMat;
 
@@ -509,7 +758,7 @@ const earthMoon = [
     size: 1.6,
     texture: earthMoonTexture,
     bump: earthMoonBump,
-    orbitSpeed: 0.001 * settings.accelerationOrbit,
+    orbitSpeed: 0.001,
     orbitRadius: 10,
   },
 ];
@@ -520,7 +769,7 @@ const marsMoons = [
     modelPath: "/images/mars/phobos.glb",
     scale: 0.1,
     orbitRadius: 5,
-    orbitSpeed: 0.002 * settings.accelerationOrbit,
+    orbitSpeed: 0.002,
     position: 100,
     mesh: null,
   },
@@ -528,7 +777,7 @@ const marsMoons = [
     modelPath: "/images/mars/deimos.glb",
     scale: 0.1,
     orbitRadius: 9,
-    orbitSpeed: 0.0005 * settings.accelerationOrbit,
+    orbitSpeed: 0.0005,
     position: 120,
     mesh: null,
   },
@@ -540,25 +789,25 @@ const jupiterMoons = [
     size: 1.6,
     texture: ioTexture,
     orbitRadius: 20,
-    orbitSpeed: 0.0005 * settings.accelerationOrbit,
+    orbitSpeed: 0.0005,
   },
   {
     size: 1.4,
     texture: europaTexture,
     orbitRadius: 24,
-    orbitSpeed: 0.00025 * settings.accelerationOrbit,
+    orbitSpeed: 0.00025,
   },
   {
     size: 2,
     texture: ganymedeTexture,
     orbitRadius: 28,
-    orbitSpeed: 0.000125 * settings.accelerationOrbit,
+    orbitSpeed: 0.000125,
   },
   {
     size: 1.7,
     texture: callistoTexture,
     orbitRadius: 32,
-    orbitSpeed: 0.00006 * settings.accelerationOrbit,
+    orbitSpeed: 0.00006,
   },
 ];
 
@@ -787,6 +1036,9 @@ neptune.planet.receiveShadow = true;
 pluto.planet.receiveShadow = true;
 
 function animate() {
+  // Update simulation time and time control
+  updateSimulationTime();
+
   //rotating planets around the sun and itself
   sun.rotateY(0.001 * settings.acceleration);
   mercury.planet.rotateY(0.001 * settings.acceleration);
@@ -796,18 +1048,7 @@ function animate() {
   venus.planet3d.rotateY(0.0006 * settings.accelerationOrbit);
   earth.planet.rotateY(0.005 * settings.acceleration);
   earth.Atmosphere.rotateY(0.001 * settings.acceleration);
-
-  // Track Earth's orbital position for year calculation
-  lastEarthPosition = earthOrbitPosition;
-  earthOrbitPosition += 0.001 * settings.accelerationOrbit;
   earth.planet3d.rotateY(0.001 * settings.accelerationOrbit);
-
-  // Check if Earth completed a full orbit (2π radians)
-  if (earthOrbitPosition >= Math.PI * 2) {
-    earthOrbitPosition = 0; // Reset orbit position
-    currentYear++; // Increment year
-    updateDateDisplay(); // Update the display
-  }
 
   mars.planet.rotateY(0.01 * settings.acceleration);
   mars.planet3d.rotateY(0.0007 * settings.accelerationOrbit);
@@ -830,19 +1071,20 @@ function animate() {
 
       const moonX =
         earth.planet.position.x +
-        moon.orbitRadius * Math.cos(time * moon.orbitSpeed);
+        moon.orbitRadius *
+          Math.cos(time * moon.orbitSpeed * settings.accelerationOrbit);
       const moonY =
         moon.orbitRadius *
-        Math.sin(time * moon.orbitSpeed) *
+        Math.sin(time * moon.orbitSpeed * settings.accelerationOrbit) *
         Math.sin(tiltAngle);
       const moonZ =
         earth.planet.position.z +
         moon.orbitRadius *
-          Math.sin(time * moon.orbitSpeed) *
+          Math.sin(time * moon.orbitSpeed * settings.accelerationOrbit) *
           Math.cos(tiltAngle);
 
       moon.mesh.position.set(moonX, moonY, moonZ);
-      moon.mesh.rotateY(0.01);
+      moon.mesh.rotateY(0.01 * settings.acceleration);
     });
   }
   // Animate Mars' moons
@@ -853,14 +1095,18 @@ function animate() {
 
         const moonX =
           mars.planet.position.x +
-          moon.orbitRadius * Math.cos(time * moon.orbitSpeed);
-        const moonY = moon.orbitRadius * Math.sin(time * moon.orbitSpeed);
+          moon.orbitRadius *
+            Math.cos(time * moon.orbitSpeed * settings.accelerationOrbit);
+        const moonY =
+          moon.orbitRadius *
+          Math.sin(time * moon.orbitSpeed * settings.accelerationOrbit);
         const moonZ =
           mars.planet.position.z +
-          moon.orbitRadius * Math.sin(time * moon.orbitSpeed);
+          moon.orbitRadius *
+            Math.sin(time * moon.orbitSpeed * settings.accelerationOrbit);
 
         moon.mesh.position.set(moonX, moonY, moonZ);
-        moon.mesh.rotateY(0.001);
+        moon.mesh.rotateY(0.001 * settings.acceleration);
       }
     });
   }
@@ -871,14 +1117,18 @@ function animate() {
       const time = performance.now();
       const moonX =
         jupiter.planet.position.x +
-        moon.orbitRadius * Math.cos(time * moon.orbitSpeed);
-      const moonY = moon.orbitRadius * Math.sin(time * moon.orbitSpeed);
+        moon.orbitRadius *
+          Math.cos(time * moon.orbitSpeed * settings.accelerationOrbit);
+      const moonY =
+        moon.orbitRadius *
+        Math.sin(time * moon.orbitSpeed * settings.accelerationOrbit);
       const moonZ =
         jupiter.planet.position.z +
-        moon.orbitRadius * Math.sin(time * moon.orbitSpeed);
+        moon.orbitRadius *
+          Math.sin(time * moon.orbitSpeed * settings.accelerationOrbit);
 
       moon.mesh.position.set(moonX, moonY, moonZ);
-      moon.mesh.rotateY(0.01);
+      moon.mesh.rotateY(0.01 * settings.acceleration);
     });
   }
 
@@ -940,8 +1190,11 @@ function animate() {
 loadAsteroids("/asteroids/asteroidPack.glb", 1000, 130, 160);
 loadAsteroids("/asteroids/asteroidPack.glb", 3000, 352, 370);
 
-// Initialize the date display
-initializeDateDisplay();
+// Initialize the time control system
+initTimeControl();
+
+// Initial time display update
+updateTimeDisplay();
 
 animate();
 
