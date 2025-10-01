@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { resolve } from "path";
 
 export default {
   root: "src/",
@@ -15,8 +16,8 @@ export default {
     sourcemap: true, // Add sourcemap
     rollupOptions: {
       input: {
-        main: "src/index.html",
-        dashboard: "src/dashboard.html",
+        main: resolve(__dirname, "src/index.html"),
+        dashboard: resolve(__dirname, "src/dashboard.html"),
       },
     },
   },
