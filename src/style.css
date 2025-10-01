@@ -118,6 +118,473 @@ body {
   letter-spacing: 0.3px;
 }
 
+/* Space Journey Overlay */
+.space-journey-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, #0f1419 0%, #000000 70%);
+  z-index: 10002;
+  overflow: hidden;
+}
+
+.space-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Animated Stars */
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+    radial-gradient(
+      1px 1px at 130px 80px,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    ),
+    radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: stars-twinkle 3s linear infinite;
+}
+
+@keyframes stars-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Floating Asteroids */
+.asteroid {
+  position: absolute;
+  background: linear-gradient(45deg, #4a4a4a, #2a2a2a);
+  border-radius: 50% 40% 60% 30%;
+  box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.8),
+    inset 5px 5px 10px rgba(255, 255, 255, 0.1), 0 0 20px rgba(139, 69, 19, 0.3);
+}
+
+.asteroid-1 {
+  width: 80px;
+  height: 60px;
+  top: 15%;
+  left: 10%;
+  animation: float-asteroid-1 12s linear infinite;
+}
+
+.asteroid-2 {
+  width: 50px;
+  height: 45px;
+  top: 60%;
+  right: 15%;
+  animation: float-asteroid-2 15s linear infinite;
+}
+
+.asteroid-3 {
+  width: 35px;
+  height: 30px;
+  top: 30%;
+  right: 25%;
+  animation: float-asteroid-3 18s linear infinite;
+}
+
+.asteroid-4 {
+  width: 25px;
+  height: 20px;
+  top: 75%;
+  left: 20%;
+  animation: float-asteroid-4 20s linear infinite;
+}
+
+/* Floating Debris */
+.floating-debris {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+.debris-1 {
+  top: 25%;
+  left: 80%;
+  animation: float-debris 8s linear infinite;
+}
+
+.debris-2 {
+  top: 70%;
+  left: 60%;
+  animation: float-debris 12s linear infinite reverse;
+}
+
+.debris-3 {
+  top: 45%;
+  left: 30%;
+  animation: float-debris 10s linear infinite;
+}
+
+@keyframes float-asteroid-1 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(-200px, 100px) rotate(360deg);
+  }
+}
+
+@keyframes float-asteroid-2 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(150px, -80px) rotate(-270deg);
+  }
+}
+
+@keyframes float-asteroid-3 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(-100px, -150px) rotate(180deg);
+  }
+}
+
+@keyframes float-asteroid-4 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(80px, -60px) rotate(-180deg);
+  }
+}
+
+@keyframes float-debris {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-300px, 200px);
+    opacity: 0.3;
+  }
+}
+
+/* Mission Control UI */
+.mission-control-ui {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  font-family: "Courier New", monospace;
+  z-index: 10003;
+  max-width: 600px;
+  padding: 0 20px;
+}
+
+.nasa-logo {
+  margin-bottom: 40px;
+  animation: fade-in-up 1s ease-out;
+}
+
+.nasa-text {
+  font-size: 4rem;
+  font-weight: bold;
+  letter-spacing: 8px;
+  color: #0066cc;
+  text-shadow: 0 0 10px rgba(0, 102, 204, 0.5), 0 0 20px rgba(0, 102, 204, 0.3),
+    0 0 30px rgba(0, 102, 204, 0.2);
+  margin-bottom: 10px;
+  animation: glow-pulse 2s ease-in-out infinite alternate;
+}
+
+.mission-subtitle {
+  font-size: 1.2rem;
+  color: #00ff88;
+  letter-spacing: 3px;
+  margin-bottom: 20px;
+}
+
+.mission-status {
+  background: rgba(0, 20, 40, 0.7);
+  border: 1px solid rgba(0, 102, 204, 0.3);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 40px;
+  backdrop-filter: blur(10px);
+  animation: fade-in-up 1s ease-out 0.5s both;
+}
+
+.status-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-line:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.status-label {
+  color: #88ccff;
+  font-weight: bold;
+}
+
+.status-value {
+  color: #ffffff;
+}
+
+.mission-ready {
+  color: #00ff88 !important;
+  text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+}
+
+.launch-button-container {
+  margin-bottom: 40px;
+  animation: fade-in-up 1s ease-out 1s both;
+}
+
+.launch-button {
+  position: relative;
+  background: linear-gradient(45deg, #0066cc, #0088ff);
+  border: none;
+  border-radius: 50px;
+  padding: 20px 40px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  font-family: "Courier New", monospace;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 5px 15px rgba(0, 102, 204, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.button-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.launch-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 102, 204, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.launch-button:hover .button-glow {
+  left: 100%;
+}
+
+.launch-button:active {
+  transform: translateY(0);
+}
+
+.button-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.launch-icon {
+  font-size: 1.5rem;
+  animation: rocket-pulse 1.5s ease-in-out infinite;
+}
+
+.launch-subtitle {
+  margin-top: 15px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-family: Arial, sans-serif;
+}
+
+.system-messages {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: left;
+  font-size: 0.9rem;
+  animation: fade-in-up 1s ease-out 1.5s both;
+}
+
+.message-line {
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: typing-effect 2s ease-out forwards;
+}
+
+.message-line:last-child {
+  margin-bottom: 0;
+}
+
+.message-line.delay-1 {
+  animation-delay: 2s;
+}
+
+.message-line.delay-2 {
+  animation-delay: 4s;
+}
+
+.message-prefix {
+  color: #00ff88;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.message-text {
+  color: #ffffff;
+}
+
+/* Countdown Sequence */
+.countdown-sequence {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10004;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 40px;
+  border-radius: 20px;
+  border: 2px solid #0066cc;
+  box-shadow: 0 0 50px rgba(0, 102, 204, 0.5);
+}
+
+.countdown-number {
+  font-size: 6rem;
+  font-weight: bold;
+  color: #00ff88;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+  margin-bottom: 20px;
+  animation: countdown-pulse 0.8s ease-in-out;
+}
+
+.countdown-text {
+  font-size: 1.5rem;
+  color: #ffffff;
+  font-family: "Courier New", monospace;
+  letter-spacing: 2px;
+}
+
+/* Launch Animation */
+.space-journey-overlay.launching {
+  animation: launch-sequence 2s ease-in-out forwards;
+}
+
+/* Keyframe Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0% {
+    text-shadow: 0 0 10px rgba(0, 102, 204, 0.5);
+  }
+  100% {
+    text-shadow: 0 0 20px rgba(0, 102, 204, 0.8),
+      0 0 30px rgba(0, 102, 204, 0.4);
+  }
+}
+
+@keyframes rocket-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes typing-effect {
+  0% {
+    opacity: 0;
+    width: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    width: 100%;
+  }
+}
+
+@keyframes countdown-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes launch-sequence {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
 /* Hide intro overlay when completed */
 .intro-video-overlay.hidden {
   display: none;

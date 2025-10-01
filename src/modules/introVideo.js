@@ -79,43 +79,145 @@ export class IntroVideo {
   }
 
   /**
-   * Show click to start overlay
+   * Show space journey startup overlay
    */
   showClickToStart() {
     if (!this.overlay || this.isCompleted) return;
 
-    // Create click to start overlay
-    const clickOverlay = document.createElement("div");
-    clickOverlay.className = "click-to-start-overlay";
-    clickOverlay.innerHTML = `
-      <div class="click-to-start-content">
-        <div class="play-icon">▶</div>
-        <p>Click to Start</p>
+    // Create space journey overlay
+    const spaceOverlay = document.createElement("div");
+    spaceOverlay.className = "space-journey-overlay";
+    spaceOverlay.innerHTML = `
+      <div class="space-background">
+        <div class="stars"></div>
+        <div class="asteroid asteroid-1"></div>
+        <div class="asteroid asteroid-2"></div>
+        <div class="asteroid asteroid-3"></div>
+        <div class="asteroid asteroid-4"></div>
+        <div class="floating-debris debris-1"></div>
+        <div class="floating-debris debris-2"></div>
+        <div class="floating-debris debris-3"></div>
+      </div>
+      
+      <div class="mission-control-ui">
+        <div class="nasa-logo">
+          <div class="nasa-text">NASA</div>
+          <div class="mission-subtitle">SPACE APPS CHALLENGE</div>
+        </div>
+        
+        <div class="mission-status">
+          <div class="status-line">
+            <span class="status-label">MISSION STATUS:</span>
+            <span class="status-value mission-ready">READY FOR LAUNCH</span>
+          </div>
+          <div class="status-line">
+            <span class="status-label">DESTINATION:</span>
+            <span class="status-value">SOLAR SYSTEM</span>
+          </div>
+          <div class="status-line">
+            <span class="status-label">CREW STATUS:</span>
+            <span class="status-value">AWAITING COMMANDER</span>
+          </div>
+        </div>
+        
+        <div class="launch-button-container">
+          <button class="launch-button">
+            <div class="button-glow"></div>
+            <div class="button-content">
+              <div class="launch-icon">🚀</div>
+              <div class="launch-text">BEGIN MISSION</div>
+            </div>
+          </button>
+          <div class="launch-subtitle">Click to start your space journey</div>
+        </div>
+        
+        <div class="system-messages">
+          <div class="message-line typing-animation">
+            <span class="message-prefix">[MISSION CONTROL]</span>
+            <span class="message-text">All systems nominal...</span>
+          </div>
+          <div class="message-line typing-animation delay-1">
+            <span class="message-prefix">[NAVIGATION]</span>
+            <span class="message-text">Solar system coordinates locked...</span>
+          </div>
+          <div class="message-line typing-animation delay-2">
+            <span class="message-prefix">[PROPULSION]</span>
+            <span class="message-text">Engines ready for interplanetary travel...</span>
+          </div>
+        </div>
       </div>
     `;
 
-    this.overlay.appendChild(clickOverlay);
+    this.overlay.appendChild(spaceOverlay);
 
-    // Click to start video with sound
-    const startVideo = () => {
-      this.video.muted = false; // Ensure sound is enabled
-      this.video
-        .play()
-        .then(() => {
-          console.log("Video started with sound after user interaction");
-          clickOverlay.remove();
-        })
-        .catch((error) => {
-          console.error(
-            "Failed to start video even after user interaction:",
-            error
-          );
-          // If it still fails, skip to main app
-          this.completeIntro();
-        });
+    // Launch button click handler
+    const launchButton = spaceOverlay.querySelector(".launch-button");
+    const startMission = () => {
+      // Add launch animation
+      spaceOverlay.classList.add("launching");
+
+      // Play launch sound if video has audio
+      this.video.muted = false;
+
+      // Start countdown effect
+      this.showCountdownSequence(spaceOverlay).then(() => {
+        this.video
+          .play()
+          .then(() => {
+            console.log("Mission launched! Video started with sound");
+            setTimeout(() => {
+              spaceOverlay.remove();
+            }, 1000); // Allow time for launch animation
+          })
+          .catch((error) => {
+            console.error("Failed to start mission video:", error);
+            this.completeIntro();
+          });
+      });
     };
 
-    clickOverlay.addEventListener("click", startVideo);
+    launchButton.addEventListener("click", startMission);
+
+    // Add keyboard support for Enter or Space
+    document.addEventListener("keydown", (e) => {
+      if (!this.isCompleted && (e.code === "Enter" || e.code === "Space")) {
+        e.preventDefault();
+        startMission();
+      }
+    });
+  }
+
+  /**
+   * Show countdown sequence before launching
+   */
+  async showCountdownSequence(overlay) {
+    return new Promise((resolve) => {
+      const countdownEl = document.createElement("div");
+      countdownEl.className = "countdown-sequence";
+      countdownEl.innerHTML = `
+        <div class="countdown-number">3</div>
+        <div class="countdown-text">MISSION LAUNCH IN...</div>
+      `;
+
+      overlay.appendChild(countdownEl);
+
+      let count = 3;
+      const countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownEl.querySelector(".countdown-number").textContent = count;
+        } else {
+          countdownEl.querySelector(".countdown-number").textContent = "GO!";
+          countdownEl.querySelector(".countdown-text").textContent =
+            "LAUNCHING...";
+          clearInterval(countdownInterval);
+
+          setTimeout(() => {
+            resolve();
+          }, 500);
+        }
+      }, 800);
+    });
   }
 
   /**
