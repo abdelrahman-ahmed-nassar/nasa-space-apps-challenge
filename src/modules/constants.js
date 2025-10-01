@@ -87,6 +87,15 @@ export const TIME_CONTROL_CONFIG = {
 
 // Planet data for information display
 export const PLANET_DATA = {
+  Sun: {
+    radius: "696,340 km",
+    tilt: "7.25°",
+    rotation: "25-35 days (varies by latitude)",
+    orbit: "N/A (center of solar system)",
+    distance: "0 km (center)",
+    moons: "0 (but has 8 planets orbiting)",
+    info: "The Sun is a G-type main-sequence star that formed approximately 4.6 billion years ago. It contains 99.86% of the mass in the Solar System and provides the energy that drives Earth's climate and weather. Nuclear fusion in its core converts hydrogen into helium, releasing tremendous amounts of energy as light and heat.",
+  },
   Mercury: {
     radius: "2,439.7 km",
     tilt: "0.034°",

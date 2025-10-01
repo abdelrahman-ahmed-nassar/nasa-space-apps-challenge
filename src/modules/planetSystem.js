@@ -40,6 +40,10 @@ export class PlanetSystem {
     );
     this.sun = new THREE.Mesh(sunGeom, sunMat);
     this.scene.add(this.sun);
+
+    // Add sun to raycast targets for click interaction
+    this.raycastTargets.push(this.sun);
+
     return this.sun;
   }
 

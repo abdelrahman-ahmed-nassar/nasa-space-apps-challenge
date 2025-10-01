@@ -107,40 +107,66 @@ export class InteractionSystem {
       if (this.selectedPlanet) {
         this.closeInfoNoZoomOut();
 
-        // Automatically pause time control when planet is clicked
+        // Automatically pause time control when celestial body is clicked
         this.timeControl.pause();
 
-        // Update camera to look at the selected planet
-        const planetPosition = new THREE.Vector3();
-        this.selectedPlanet.planet.getWorldPosition(planetPosition);
-        this.controls.target.copy(planetPosition);
-        this.camera.lookAt(planetPosition);
+        // Update camera to look at the selected celestial body
+        const bodyPosition = new THREE.Vector3();
+
+        if (this.selectedPlanet.isSun) {
+          // Sun is at the origin
+          bodyPosition.set(0, 0, 0);
+        } else {
+          // Get planet position
+          this.selectedPlanet.planet.getWorldPosition(bodyPosition);
+        }
+
+        this.controls.target.copy(bodyPosition);
+
+        // Ensure controls remain enabled during focus
+        this.controls.enabled = true;
+        this.controls.enableRotate = true;
+        this.controls.enableZoom = true;
+        this.controls.enablePan = true;
+
+        this.camera.lookAt(bodyPosition);
 
         this.targetCameraPosition
-          .copy(planetPosition)
+          .copy(bodyPosition)
           .add(
             this.camera.position
               .clone()
-              .sub(planetPosition)
+              .sub(bodyPosition)
               .normalize()
               .multiplyScalar(this.offset)
           );
         this.isMovingTowardsPlanet = true;
       }
+    } else {
+      // Clicked on empty space - free the camera controls
+      this.closeInfoNoZoomOut();
+      this.freeCameraControls();
     }
   }
 
   /**
-   * Identify which planet was clicked based on the clicked object
+   * Identify which planet or sun was clicked based on the clicked object
    */
   identifyPlanet(clickedObject) {
     const planets = this.planetSystem.getPlanets();
+    const sun = this.planetSystem.getSun();
+
+    // Check if sun was clicked
+    if (sun && clickedObject.material === sun.material) {
+      this.offset = this.getCameraOffset("Sun");
+      return { name: "Sun", planet: sun, isSun: true };
+    }
 
     // Check each planet and set appropriate camera offset
     for (const [name, planet] of Object.entries(planets)) {
       if (clickedObject.material === planet.planet.material) {
         this.offset = this.getCameraOffset(name);
-        return planet;
+        return { ...planet, name, isSun: false };
       }
 
       // Check atmospheres
@@ -149,7 +175,7 @@ export class InteractionSystem {
         clickedObject.material === planet.Atmosphere.material
       ) {
         this.offset = this.getCameraOffset(name);
-        return planet;
+        return { ...planet, name, isSun: false };
       }
     }
 
@@ -157,10 +183,11 @@ export class InteractionSystem {
   }
 
   /**
-   * Get appropriate camera offset for each planet
+   * Get appropriate camera offset for each planet and sun
    */
   getCameraOffset(planetName) {
     const offsets = {
+      Sun: 80, // Much larger distance to view the whole sun properly
       Mercury: 10,
       Venus: 25,
       Earth: 25,
@@ -207,7 +234,7 @@ export class InteractionSystem {
   updateCameraMovement() {
     if (this.isMovingTowardsPlanet) {
       // Smoothly move the camera towards the target position
-      this.camera.position.lerp(this.targetCameraPosition, 0.03);
+      this.camera.position.lerp(this.targetCameraPosition, 0.07);
 
       // Check if the camera is close to the target position
       if (this.camera.position.distanceTo(this.targetCameraPosition) < 1) {
@@ -215,10 +242,16 @@ export class InteractionSystem {
         this.showPlanetInfo(this.selectedPlanet.name);
       }
     } else if (this.isZoomingOut) {
-      this.camera.position.lerp(this.zoomOutTargetPosition, 0.05);
+      this.camera.position.lerp(this.zoomOutTargetPosition, 0.08);
 
       if (this.camera.position.distanceTo(this.zoomOutTargetPosition) < 1) {
         this.isZoomingOut = false;
+
+        // Ensure controls are fully enabled and free after zoom out completes
+        this.freeCameraControls();
+
+        // Clear any target constraints to allow free rotation
+        // Note: We don't set target to (0,0,0) here to avoid forcing focus on sun
       }
     }
   }
@@ -247,7 +280,12 @@ export class InteractionSystem {
     info.style.display = "none";
     this.isPlanetInfoVisible = false;
     this.isZoomingOut = true;
-    this.controls.target.set(0, 0, 0);
+
+    // Don't force target to sun - let user freely navigate
+    // this.controls.target.set(0, 0, 0); // Removed this line
+
+    // Free camera controls for unrestricted navigation
+    this.freeCameraControls();
 
     // Resume time control when closing planet details
     this.timeControl.resume();
@@ -263,6 +301,27 @@ export class InteractionSystem {
 
     // Resume time control when closing planet details to view another planet
     this.timeControl.resume();
+  }
+
+  /**
+   * Free camera controls for unrestricted navigation
+   */
+  freeCameraControls() {
+    // Enable all control types
+    this.controls.enabled = true;
+    this.controls.enableRotate = true;
+    this.controls.enableZoom = true;
+    this.controls.enablePan = true;
+    this.controls.autoRotate = false;
+
+    // Reset damping to ensure smooth navigation
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.75;
+
+    // Don't force any specific target - let user control the view
+    // this.controls.target.set(0, 0, 0); // Removed to allow free navigation
+
+    this.controls.update();
   }
 
   // Getter methods
