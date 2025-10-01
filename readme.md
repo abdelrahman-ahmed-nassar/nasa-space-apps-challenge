@@ -34,13 +34,225 @@ src/
 ├── script.js          # Main application logic and Three.js setup
 ├── style.css          # UI styling and responsive design
 ├── index.html         # Entry point with GUI container
-├── dashboard.html     # Empty dashboard (unused)
+├── dashboard.html     # Dashboard page for project information
+├── navigation.js      # Client-side routing handler
 ├── images/           # Planet textures and astronomical imagery
 │   ├── mars/         # Mars moon 3D models (Phobos, Deimos)
 │   └── [planet textures, bump maps, atmospheres]
 ├── asteroids/        # 3D asteroid models
+├── modules/          # Modular components
+│   ├── router.js     # Routing utilities (unused in current implementation)
+│   └── [other modules]
 └── static/           # Additional static assets
 ```
+
+## 🔗 Dashboard Routing System
+
+### Overview
+
+A custom routing system has been implemented to serve clean URLs without file extensions. The dashboard is accessible at `/dashboard` instead of `/dashboard.html`.
+
+### Implementation Details
+
+#### 1. Vite Configuration (`vite.config.js`)
+
+**Custom Plugin**: A Vite plugin handles URL rewriting to serve clean routes
+
+```javascript
+plugins: [
+  {
+    name: "dashboard-route",
+    configureServer(server) {
+      server.middlewares.use("/dashboard", (req, res, next) => {
+        // Serve dashboard.html content at /dashboard route
+        const dashboardPath = path.join(process.cwd(), 'src', 'dashboard.html');
+
+        try {
+          const content = fs.readFileSync(dashboardPath, 'utf8');
+          res.writeHead(200, {
+            'Content-Type': 'text/html; charset=utf-8'
+          });
+          res.end(content);
+        } catch (err) {
+          next();
+        }
+      });
+    },
+  },
+],
+```
+
+**Key Features**:
+
+- Intercepts requests to `/dashboard`
+- Reads `dashboard.html` content synchronously
+- Serves HTML with proper content type headers
+- Falls back to default behavior on errors
+
+#### 2. Client-Side Navigation (`navigation.js`)
+
+**Purpose**: Handles browser navigation events and routing logic
+
+```javascript
+export class Navigation {
+  constructor() {
+    this.init();
+  }
+
+  init() {
+    // Handle navigation clicks for internal links
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest('a[href^="/"]');
+      if (link) {
+        e.preventDefault();
+        const href = link.getAttribute("href");
+        if (href === "/dashboard") {
+          window.location.href = "/dashboard";
+        } else {
+          this.navigate(href);
+        }
+      }
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener("popstate", () => {
+      this.handleRoute();
+    });
+  }
+}
+```
+
+**Navigation Features**:
+
+- Prevents default link behavior for internal routes
+- Handles browser history (back/forward buttons)
+- Automatically initializes on DOM content loaded
+- Supports future route expansion
+
+#### 3. Dashboard Page (`dashboard.html`)
+
+**Content**: Information hub with project details and quick facts
+
+**Features**:
+
+- **Responsive Design**: CSS Grid layout for dashboard cards
+- **Back Navigation**: Link to return to main solar system view
+- **Interactive Cards**: Hover effects and animations
+- **Project Information**: Overview, mission status, astronomical events
+- **Quick Facts**: Educational content about the solar system
+
+**Styling Highlights**:
+
+```css
+.dashboard-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: white;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 10px;
+  margin-top: 50px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+```
+
+### Usage
+
+#### Accessing the Dashboard
+
+1. **Direct URL**: Navigate to `http://localhost:5173/dashboard`
+2. **Programmatic**: Use `window.location.href = '/dashboard'`
+3. **Back Navigation**: Use the "← Back to Solar System" button
+
+#### URL Behavior
+
+- ✅ **Clean URLs**: `/dashboard` (not `/dashboard.html`)
+- ✅ **Browser History**: Back/forward buttons work correctly
+- ✅ **Bookmarkable**: Direct links to `/dashboard` work
+- ✅ **Development**: Works in Vite dev server
+- ✅ **Production**: Build process includes both HTML files
+
+### Adding New Routes
+
+To add additional routes to the system:
+
+#### 1. Create HTML File
+
+```bash
+# Create new page in src/
+touch src/newpage.html
+```
+
+#### 2. Update Vite Configuration
+
+```javascript
+// Add to vite.config.js plugins array
+server.middlewares.use("/newpage", (req, res, next) => {
+  const pagePath = path.join(process.cwd(), "src", "newpage.html");
+  // ... same serving logic as dashboard
+});
+```
+
+#### 3. Update Build Configuration
+
+```javascript
+// Add to rollupOptions.input
+rollupOptions: {
+  input: {
+    main: "src/index.html",
+    dashboard: "src/dashboard.html",
+    newpage: "src/newpage.html", // Add new entry
+  },
+}
+```
+
+#### 4. Add Navigation Links
+
+```javascript
+// Update navigation.js handleRoute method
+switch (path) {
+  case "/dashboard":
+    // Dashboard route handling
+    break;
+  case "/newpage":
+    // New page route handling
+    break;
+  // ...
+}
+```
+
+### Troubleshooting
+
+#### Common Issues
+
+**404 Errors**:
+
+- Ensure Vite dev server is running
+- Check middleware registration in `vite.config.js`
+- Verify HTML file exists in `src/` directory
+
+**Styling Issues**:
+
+- Dashboard uses the main `style.css` file
+- Additional styles are embedded in the HTML
+- Ensure CSS paths are relative to the `src/` directory
+
+**Navigation Problems**:
+
+- Check `navigation.js` is loaded in the main page
+- Verify event listeners are properly attached
+- Test browser console for JavaScript errors
+
+### Performance Considerations
+
+- **Synchronous File Reading**: Dashboard content is read synchronously for simplicity
+- **Memory Usage**: HTML content is read on each request (not cached)
+- **Future Optimization**: Consider implementing file caching for production builds
 
 ## 🌌 Core System Components
 
