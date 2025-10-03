@@ -12,6 +12,68 @@ import {
 } from "./modules/constants.js";
 
 /**
+ * Helper function to calculate countdown in years, months, days, hours, minutes, seconds
+ * @param {number} timeDiffMs - Time difference in milliseconds
+ * @returns {Object} - Object containing years, months, days, hours, minutes, seconds
+ */
+function calculateCountdownTime(timeDiffMs) {
+  const absTimeDiff = Math.abs(timeDiffMs);
+
+  // Calculate time units
+  const years = Math.floor(absTimeDiff / (1000 * 60 * 60 * 24 * 365.25));
+  const months = Math.floor(
+    (absTimeDiff % (1000 * 60 * 60 * 24 * 365.25)) /
+      (1000 * 60 * 60 * 24 * 30.44)
+  );
+  const days = Math.floor(
+    (absTimeDiff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24)
+  );
+  const hours = Math.floor(
+    (absTimeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  );
+  const minutes = Math.floor((absTimeDiff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((absTimeDiff % (1000 * 60)) / 1000);
+
+  return { years, months, days, hours, minutes, seconds };
+}
+
+/**
+ * Format countdown time for display
+ * @param {Object} timeObj - Object with years, months, days, hours, minutes, seconds
+ * @returns {string} - Formatted countdown string
+ */
+function formatCountdownTime(timeObj) {
+  const { years, months, days, hours, minutes, seconds } = timeObj;
+
+  // Show different formats based on time remaining
+  if (years > 0) {
+    return `${String(years).padStart(2, "0")}Y : ${String(months).padStart(
+      2,
+      "0"
+    )}M : ${String(days).padStart(2, "0")}D : ${String(hours).padStart(
+      2,
+      "0"
+    )}H`;
+  } else if (months > 0) {
+    return `${String(months).padStart(2, "0")}M : ${String(days).padStart(
+      2,
+      "0"
+    )}D : ${String(hours).padStart(2, "0")}H : ${String(minutes).padStart(
+      2,
+      "0"
+    )}m`;
+  } else {
+    return `${String(days).padStart(2, "0")}D : ${String(hours).padStart(
+      2,
+      "0"
+    )}H : ${String(minutes).padStart(2, "0")}m : ${String(seconds).padStart(
+      2,
+      "0"
+    )}s`;
+  }
+}
+
+/**
  * ASTEROID CONFIGURATION:
  * To modify asteroid settings, edit ASTEROID_CONFIG in /modules/constants.js
  *
@@ -121,6 +183,9 @@ class SolarSystemApp {
         this.timeControl,
         this.planetSystem.planets.earth?.planetMesh
       );
+
+      // Initialize the asteroid trajectory system (including crash video)
+      this.asteroidTrajectory.init();
       console.log("✓ Asteroid trajectory system initialized");
 
       // Initialize asteroid swiper UI
@@ -133,14 +198,18 @@ class SolarSystemApp {
         this.interactionSystem,
         this.sceneSetup.getComposer(),
         this.sceneSetup.getControls(),
-        this.asteroidTrajectory
+        this.asteroidTrajectory,
+        this // Pass the app instance for countdown updates
       );
 
       // Start the animation loop
       this.animationSystem.start();
       console.log("✓ Animation system started");
 
-      // Initialize navigation button states (but don't setup asteroid yet)
+      // Setup first asteroid immediately when app starts
+      this.setupDefaultAsteroid();
+
+      // Initialize navigation button states
       this.updateNavigationButtons();
 
       this.isInitialized = true;
@@ -159,6 +228,13 @@ class SolarSystemApp {
   }
 
   /**
+   * Public method to update countdown timers - called by animation system
+   */
+  updateCountdownTimersPublic() {
+    this.updateCountdownTimers();
+  }
+
+  /**
    * Get application modules for external access if needed
    */
   getModules() {
@@ -169,6 +245,7 @@ class SolarSystemApp {
       interactionSystem: this.interactionSystem,
       animationSystem: this.animationSystem,
       asteroidTrajectory: this.asteroidTrajectory,
+      updateCountdownTimers: () => this.updateCountdownTimersPublic(),
     };
   }
 
@@ -217,14 +294,11 @@ class SolarSystemApp {
     // Start countdown timer updates
     this.startCountdownUpdates();
 
-    // Initialize warning alert system
-    this.initializeWarningAlert();
+    // Show the swiper immediately
+    this.asteroidSwiperContainer.classList.add("visible");
+    this.asteroidSwiperContainer.classList.remove("hidden");
 
-    // Keep swiper hidden initially - will be shown via warning alert
-    this.asteroidSwiperContainer.classList.add("hidden");
-    this.asteroidSwiperContainer.classList.remove("visible");
-
-    console.log("✓ Asteroid swiper initialized (hidden)");
+    console.log("✓ Asteroid swiper initialized (visible)");
   }
 
   /**
@@ -236,16 +310,16 @@ class SolarSystemApp {
         .toLowerCase()
         .replace(" ", "-")}`;
 
-      // Calculate time until impact
+      // Calculate time until impact using simulation time
       const impactDate = new Date(asteroid.impactDate);
-      const now = new Date();
-      const timeDiff = impactDate - now;
-      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-      );
-      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+      const simulationTime = this.timeControl
+        ? this.timeControl.getSimulationDate()
+        : new Date();
+      const timeDiff = impactDate - simulationTime;
+
+      const countdownTime = calculateCountdownTime(timeDiff);
+      const countdownText =
+        timeDiff > 0 ? formatCountdownTime(countdownTime) : "IMPACT OCCURRED";
 
       return `
         <div class="asteroid-card" data-index="${index}" style="--asteroid-color: #${asteroid.color
@@ -271,13 +345,8 @@ class SolarSystemApp {
 
           <div class="asteroid-countdown">
             <div class="countdown-label">TIME TO IMPACT</div>
-            <div class="countdown-time">T-${String(Math.abs(days)).padStart(
-              2,
-              "0"
-            )} : ${String(Math.abs(hours)).padStart(2, "0")} : ${String(
-        Math.abs(minutes)
-      ).padStart(2, "0")} : ${String(Math.abs(seconds)).padStart(2, "0")}</div>
-            <div class="countdown-units">DAYS : HOURS : MINUTES : SECONDS</div>
+            <div class="countdown-time">${countdownText}</div>
+            <div class="countdown-units">YEARS : MONTHS : DAYS : HOURS</div>
           </div>
         </div>
       `;
@@ -359,21 +428,31 @@ class SolarSystemApp {
   }
 
   /**
-   * Navigate to previous asteroid
+   * Navigate to previous asteroid (with looping)
    */
   previousAsteroid() {
+    let newIndex;
     if (this.currentAsteroidIndex > 0) {
-      this.switchToAsteroid(this.currentAsteroidIndex - 1);
+      newIndex = this.currentAsteroidIndex - 1;
+    } else {
+      // Loop to last asteroid when at first
+      newIndex = ASTEROIDS_CONFIG.length - 1;
     }
+    this.switchToAsteroid(newIndex);
   }
 
   /**
-   * Navigate to next asteroid
+   * Navigate to next asteroid (with looping)
    */
   nextAsteroid() {
+    let newIndex;
     if (this.currentAsteroidIndex < ASTEROIDS_CONFIG.length - 1) {
-      this.switchToAsteroid(this.currentAsteroidIndex + 1);
+      newIndex = this.currentAsteroidIndex + 1;
+    } else {
+      // Loop to first asteroid when at last
+      newIndex = 0;
     }
+    this.switchToAsteroid(newIndex);
   }
 
   /**
@@ -390,12 +469,8 @@ class SolarSystemApp {
     // Update card position
     this.updateCardPosition();
 
-    // Update asteroid in 3D scene only if cards are visible
-    const cardsVisible =
-      this.asteroidSwiperContainer &&
-      this.asteroidSwiperContainer.classList.contains("visible");
-
-    if (cardsVisible && this.asteroidTrajectory) {
+    // Always update asteroid in 3D scene since cards are always visible
+    if (this.asteroidTrajectory) {
       this.asteroidTrajectory.reset();
       this.asteroidTrajectory.setupTrajectory();
     }
@@ -427,60 +502,56 @@ class SolarSystemApp {
   }
 
   /**
-   * Update navigation button states
+   * Update navigation button states (always enabled for looping)
    */
   updateNavigationButtons() {
     const prevBtn = document.getElementById("prevAsteroid");
     const nextBtn = document.getElementById("nextAsteroid");
 
+    // Always enable both buttons since we have looping
     if (prevBtn) {
-      prevBtn.disabled = this.currentAsteroidIndex === 0;
+      prevBtn.disabled = false;
     }
 
     if (nextBtn) {
-      nextBtn.disabled =
-        this.currentAsteroidIndex === ASTEROIDS_CONFIG.length - 1;
+      nextBtn.disabled = false;
     }
   }
 
   /**
-   * Start countdown timer updates
+   * Start countdown timer updates synchronized with simulation time
    */
   startCountdownUpdates() {
-    // Update countdown every second
-    this.countdownInterval = setInterval(() => {
-      this.updateCountdownTimers();
-    }, 1000);
+    // Update countdown every animation frame for smooth time control synchronization
+    // This will be called from the animation loop rather than a fixed interval
+    console.log(
+      "✓ Countdown timers will update with animation loop for time sync"
+    );
   }
 
   /**
-   * Update all countdown timers
+   * Update all countdown timers based on simulation time
    */
   updateCountdownTimers() {
+    if (!this.timeControl) return;
+
     const cards = document.querySelectorAll(".asteroid-card");
     cards.forEach((card, index) => {
       const asteroid = ASTEROIDS_CONFIG[index];
       const impactDate = new Date(asteroid.impactDate);
-      const now = new Date();
-      const timeDiff = impactDate - now;
 
-      if (timeDiff > 0) {
-        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor(
-          (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-        );
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+      // Use simulation time instead of real time
+      const simulationTime = this.timeControl.getSimulationDate();
+      const timeDiff = impactDate - simulationTime;
 
-        const countdownElement = card.querySelector(".countdown-time");
-        if (countdownElement) {
-          countdownElement.textContent = `T-${String(days).padStart(
-            2,
-            "0"
-          )} : ${String(hours).padStart(2, "0")} : ${String(minutes).padStart(
-            2,
-            "0"
-          )} : ${String(seconds).padStart(2, "0")}`;
+      const countdownElement = card.querySelector(".countdown-time");
+      if (countdownElement) {
+        if (timeDiff > 0) {
+          const countdownTime = calculateCountdownTime(timeDiff);
+          countdownElement.textContent = formatCountdownTime(countdownTime);
+        } else {
+          // Impact has passed
+          countdownElement.textContent = "IMPACT OCCURRED";
         }
       }
     });
@@ -498,112 +569,17 @@ class SolarSystemApp {
   }
 
   /**
-   * Initialize warning alert system
-   */
-  initializeWarningAlert() {
-    this.warningAlert = document.getElementById("asteroidWarningAlert");
-    this.closeCardsBtn = document.getElementById("closeAsteroidCards");
-
-    if (!this.warningAlert) {
-      console.error("Warning alert element not found");
-      return;
-    }
-
-    // Show warning alert after a short delay to simulate detection
-    setTimeout(() => {
-      this.showWarningAlert();
-    }, 3000); // 3 seconds after app loads
-
-    // Setup warning alert click handler
-    this.warningAlert.addEventListener("click", () => {
-      this.toggleAsteroidCards();
-    });
-
-    // Setup close button handler
-    if (this.closeCardsBtn) {
-      this.closeCardsBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // Prevent event bubbling
-        this.hideAsteroidCards();
-      });
-    }
-
-    console.log("✓ Warning alert system initialized");
-  }
-
-  /**
-   * Show warning alert with animation
-   */
-  showWarningAlert() {
-    if (this.warningAlert) {
-      this.warningAlert.classList.remove("hidden");
-      console.log("⚠️ Asteroid threat detected - warning alert shown");
-    }
-  }
-
-  /**
-   * Hide warning alert
-   */
-  hideWarningAlert() {
-    if (this.warningAlert) {
-      this.warningAlert.classList.add("hidden");
-    }
-  }
-
-  /**
-   * Toggle asteroid cards visibility
-   */
-  toggleAsteroidCards() {
-    const isHidden = this.asteroidSwiperContainer.classList.contains("hidden");
-
-    if (isHidden) {
-      this.showAsteroidCards();
-    } else {
-      this.hideAsteroidCards();
-    }
-  }
-
-  /**
-   * Show asteroid cards and hide warning
-   */
-  showAsteroidCards() {
-    // Show cards
-    this.asteroidSwiperContainer.classList.remove("hidden");
-    this.asteroidSwiperContainer.classList.add("visible");
-
-    // Hide warning alert
-    this.hideWarningAlert();
-
-    // Setup default asteroid in 3D scene if not already set
-    this.setupDefaultAsteroid();
-
-    console.log("📊 Asteroid threat analysis opened");
-  }
-
-  /**
-   * Hide asteroid cards and show warning again
-   */
-  hideAsteroidCards() {
-    // Hide cards
-    this.asteroidSwiperContainer.classList.remove("visible");
-    this.asteroidSwiperContainer.classList.add("hidden");
-
-    // Reset asteroid trajectory (hide asteroid from scene)
-    if (this.asteroidTrajectory) {
-      this.asteroidTrajectory.reset();
-    }
-
-    // Show warning alert again
-    this.showWarningAlert();
-
-    console.log("📊 Asteroid threat analysis closed");
-  }
-
-  /**
    * Cleanup resources when needed
    */
   destroy() {
     if (this.animationSystem) {
       this.animationSystem.stop();
+    }
+
+    // Clear any intervals
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+      this.countdownInterval = null;
     }
 
     // Additional cleanup can be added here if needed

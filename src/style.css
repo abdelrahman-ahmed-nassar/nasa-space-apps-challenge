@@ -62,6 +62,67 @@ body {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Crash Video Styles */
+.crash-video-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  z-index: 9999;
+  overflow: hidden;
+  transition: opacity 0.5s ease;
+}
+
+.crash-video-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.crash-video {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.skip-crash-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(255, 0, 0, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: "Arial", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  backdrop-filter: blur(20px);
+  transition: all 0.2s ease;
+  z-index: 10000;
+  box-shadow: 0 4px 20px rgba(255, 0, 0, 0.2);
+}
+
+.skip-crash-btn:hover {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: rgba(255, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 25px rgba(255, 0, 0, 0.3);
+}
+
+.skip-crash-btn:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 10px rgba(255, 0, 0, 0.2);
+}
+
 /* Click to start overlay for autoplay restrictions */
 .click-to-start-overlay {
   position: absolute;
@@ -1232,10 +1293,10 @@ body {
   text-shadow: none;
   letter-spacing: 2px;
   line-height: 1.1;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  max-width: 220px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 300px;
 }
 
 .asteroid-risk-badge {
@@ -1501,166 +1562,8 @@ body {
   transition: all 0.3s ease;
 }
 
-/* Asteroid Warning Alert Styles */
-.asteroid-warning-alert {
-  position: fixed;
-  top: 80px;
-  right: 30px;
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.15) 0%, rgba(139, 0, 0, 0.2) 100%);
-  border: 2px solid #ff4444;
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  backdrop-filter: blur(10px);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 9000;
-  box-shadow: 0 4px 20px rgba(255, 68, 68, 0.3);
-  min-width: 280px;
-}
-
-.asteroid-warning-alert:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(255, 68, 68, 0.4);
-  border-color: #ff6666;
-}
-
-.asteroid-warning-alert.hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(100%) translateY(-2px);
-  transition: all 0.5s ease;
-}
-
-.warning-icon-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.warning-icon {
-  font-size: 24px;
-  z-index: 2;
-  position: relative;
-}
-
-.warning-pulse {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  background: radial-gradient(circle, rgba(255, 68, 68, 0.4) 0%, rgba(255, 68, 68, 0.1) 50%, transparent 70%);
-  border-radius: 50%;
-  animation: warningPulse 2s ease-in-out infinite;
-}
-
-@keyframes warningPulse {
-  0% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0.4;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0.8;
-  }
-}
-
-.warning-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.warning-title {
-  color: #ff6666;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  line-height: 1.2;
-}
-
-.warning-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 11px;
-  font-weight: 400;
-  opacity: 0.9;
-}
-
-/* Close button for asteroid cards */
-.close-cards-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1000;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-}
-
-.close-cards-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.1);
-}
-
-.close-cards-btn span {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 16px;
-  font-weight: 300;
-  line-height: 1;
-}
-
-.close-cards-btn:hover span {
-  color: #ffffff;
-}
-
 /* Global hidden class */
 .hidden {
   opacity: 0;
   pointer-events: none;
-}
-
-/* Responsive design for warning alert */
-@media (max-width: 768px) {
-  .asteroid-warning-alert {
-    right: 20px;
-    top: 70px;
-    min-width: 250px;
-    padding: 14px 16px;
-  }
-  
-  .warning-title {
-    font-size: 12px;
-  }
-  
-  .warning-subtitle {
-    font-size: 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  .asteroid-warning-alert {
-    right: 15px;
-    top: 60px;
-    min-width: 220px;
-    padding: 12px 14px;
-  }
 }

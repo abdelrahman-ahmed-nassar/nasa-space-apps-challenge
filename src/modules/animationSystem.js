@@ -11,7 +11,8 @@ export class AnimationSystem {
     interactionSystem,
     composer,
     controls,
-    asteroidTrajectory = null
+    asteroidTrajectory = null,
+    app = null
   ) {
     this.planetSystem = planetSystem;
     this.timeControl = timeControl;
@@ -19,8 +20,10 @@ export class AnimationSystem {
     this.composer = composer;
     this.controls = controls;
     this.asteroidTrajectory = asteroidTrajectory;
+    this.app = app; // Reference to main app for countdown updates
 
     this.isAnimating = false;
+    this.frameCounter = 0; // Add frame counter for throttling UI updates
   }
 
   /**
@@ -46,6 +49,8 @@ export class AnimationSystem {
   animate() {
     if (!this.isAnimating) return;
 
+    this.frameCounter++;
+
     // Update simulation time and time control
     this.timeControl.updateSimulationTime();
 
@@ -57,6 +62,11 @@ export class AnimationSystem {
 
     // Update asteroid trajectory if active
     this.updateAsteroidTrajectory();
+
+    // Update countdown timers (throttled to every 30 frames ≈ 0.5 seconds at 60 FPS)
+    if (this.app && this.frameCounter % 30 === 0) {
+      this.app.updateCountdownTimersPublic();
+    }
 
     // Update interaction systems
     this.interactionSystem.updateOutlineHighlighting();

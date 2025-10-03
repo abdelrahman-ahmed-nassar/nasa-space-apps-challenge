@@ -11,7 +11,7 @@
     <!-- Intro Video Overlay -->
     <div id="introVideoOverlay" class="intro-video-overlay">
       <video id="introVideo" class="intro-video">
-        <source src="intro-video.mp4" type="video/mp4" />
+        <source src="videos/intro-video.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       <button type="button" id="skipIntroBtn" class="skip-intro-btn">
@@ -19,20 +19,19 @@
       </button>
     </div>
 
+    <!-- Crash Video Overlay -->
+    <div id="crashVideoOverlay" class="crash-video-overlay hidden">
+      <video id="crashVideo" class="crash-video">
+        <source src="videos/crash-video.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <button type="button" id="skipCrashBtn" class="skip-crash-btn">
+        Skip
+      </button>
+    </div>
+
     <div><script type="module" src="./script.js"></script></div>
     <script type="module" src="./navigation.js"></script>
-
-    <!-- Asteroid Warning Alert -->
-    <div id="asteroidWarningAlert" class="asteroid-warning-alert hidden">
-      <div class="warning-icon-container">
-        <div class="warning-icon">⚠️</div>
-        <div class="warning-pulse"></div>
-      </div>
-      <div class="warning-content">
-        <div class="warning-title">ASTEROID IMPACT DETECTED</div>
-        <div class="warning-subtitle">Click to view threat analysis</div>
-      </div>
-    </div>
 
     <!-- Time Control Bar -->
     <div id="timeControlContainer" class="time-control-container">
@@ -96,19 +95,13 @@
     </div>
 
     <!-- Asteroid Swiper Container -->
-    <div id="asteroidSwiperContainer" class="asteroid-swiper-container hidden">
+    <div id="asteroidSwiperContainer" class="asteroid-swiper-container visible">
       <div class="asteroid-swiper-wrapper">
-        <!-- Close button -->
-        <button id="closeAsteroidCards" class="close-cards-btn">
-          <span>&times;</span>
-        </button>
-
         <div class="asteroid-cards-container">
           <div id="asteroidCards" class="asteroid-cards">
             <!-- Asteroid cards will be dynamically generated -->
           </div>
         </div>
-
         <!-- Navigation buttons -->
         <button id="prevAsteroid" class="swiper-nav-btn prev-asteroid">
           <span>&#9664;</span>

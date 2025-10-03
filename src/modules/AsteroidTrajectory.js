@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { SETTINGS, getCurrentAsteroid } from "./constants.js";
+import { CrashVideo } from "./crashVideo.js";
 
 /**
  * Simplified Asteroid Trajectory System
@@ -19,6 +20,23 @@ export class AsteroidTrajectory {
     this.startDate = null;
     this.trajectory = [];
     this.trajectoryLine = null; // Visual trajectory path
+
+    // Initialize crash video system
+    this.crashVideo = new CrashVideo();
+  }
+
+  /**
+   * Initialize the asteroid trajectory system
+   */
+  init() {
+    // Initialize crash video system
+    this.crashVideo.init(() => {
+      console.log("Crash video completed, resetting simulation...");
+      // Reset simulation after crash video completes
+      this.reset();
+    });
+
+    console.log("✓ Asteroid trajectory system initialized");
   }
 
   /**
@@ -86,7 +104,7 @@ export class AsteroidTrajectory {
   }
 
   /**
-   * Create the asteroid 3D object
+   * Create the asteroid 3D object with enhanced visuals
    */
   createAsteroid() {
     // Remove existing asteroid if any
@@ -97,27 +115,118 @@ export class AsteroidTrajectory {
     // Get current asteroid configuration
     const asteroidConfig = getCurrentAsteroid();
 
-    // Create asteroid geometry using configuration
-    const geometry = new THREE.SphereGeometry(asteroidConfig.size, 16, 16);
+    // Create asteroid geometry with more detail
+    const geometry = new THREE.SphereGeometry(asteroidConfig.size, 32, 32);
+
+    // Slightly deform the sphere to make it more realistic
+    const positions = geometry.attributes.position;
+    for (let i = 0; i < positions.count; i++) {
+      const vertex = new THREE.Vector3();
+      vertex.fromBufferAttribute(positions, i);
+
+      // Add random deformation to make it look more like a real asteroid
+      const noise = (Math.random() - 0.5) * 0.2;
+      vertex.multiplyScalar(1 + noise);
+
+      positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
+    }
+    positions.needsUpdate = true;
+    geometry.computeVertexNormals();
+
+    // Enhanced material with more realistic properties
     const material = new THREE.MeshPhongMaterial({
       color: asteroidConfig.color,
-      emissive: asteroidConfig.color,
-      emissiveIntensity: 0.3,
-      roughness: 0.8,
-      metalness: 0.1,
+      emissive: new THREE.Color(asteroidConfig.color).multiplyScalar(0.1),
+      emissiveIntensity: 0.2,
+      roughness: 0.9,
+      metalness: 0.05,
+      shininess: 1,
+      specular: 0x111111,
     });
 
     this.asteroid = new THREE.Mesh(geometry, material);
     this.asteroid.position.copy(this.startPosition);
     this.asteroid.castShadow = true;
+    this.asteroid.receiveShadow = true;
+
+    // Add rotation data for animation
+    this.asteroidRotationSpeed = {
+      x: (Math.random() - 0.5) * 0.02,
+      y: (Math.random() - 0.5) * 0.03,
+      z: (Math.random() - 0.5) * 0.01,
+    };
+
     this.scene.add(this.asteroid);
 
+    // Create particle trail system
+    this.createParticleTrail();
+
     console.log(
-      `🌑 Asteroid "${asteroidConfig.name}" created at starting position:`,
+      `🌑 Enhanced asteroid "${asteroidConfig.name}" created at starting position:`,
       this.startPosition
     );
     console.log("🌑 Asteroid size:", asteroidConfig.size);
     console.log("🌑 Asteroid color:", asteroidConfig.color.toString(16));
+  }
+
+  /**
+   * Create particle trail system for the asteroid
+   */
+  createParticleTrail() {
+    // Remove existing trail if any
+    if (this.particleTrail) {
+      this.scene.remove(this.particleTrail);
+    }
+
+    const asteroidConfig = getCurrentAsteroid();
+    const particleCount = 200;
+
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const sizes = new Float32Array(particleCount);
+
+    const trailColor = new THREE.Color(asteroidConfig.trailColor);
+
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+
+      // Initially position all particles at asteroid start position
+      positions[i3] = this.startPosition.x;
+      positions[i3 + 1] = this.startPosition.y;
+      positions[i3 + 2] = this.startPosition.z;
+
+      // Color with slight variation
+      const colorVariation = 0.3;
+      colors[i3] = trailColor.r + (Math.random() - 0.5) * colorVariation;
+      colors[i3 + 1] = trailColor.g + (Math.random() - 0.5) * colorVariation;
+      colors[i3 + 2] = trailColor.b + (Math.random() - 0.5) * colorVariation;
+
+      // Random sizes
+      sizes[i] = Math.random() * 0.5 + 0.1;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+
+    const material = new THREE.PointsMaterial({
+      size: 0.3,
+      transparent: true,
+      opacity: 0.8,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true,
+    });
+
+    this.particleTrail = new THREE.Points(geometry, material);
+    this.scene.add(this.particleTrail);
+
+    // Initialize trail tracking
+    this.trailPositions = [];
+    this.trailMaxLength = 50;
+
+    console.log("✨ Particle trail system created");
   }
 
   /**
@@ -155,38 +264,187 @@ export class AsteroidTrajectory {
   }
 
   /**
-   * Create visual trajectory line
+   * Create enhanced trajectory visualization with animated particles
    */
   createTrajectoryVisualization() {
-    // Remove existing trajectory line if any
+    // Remove existing trajectory elements if any
     if (this.trajectoryLine) {
       this.scene.remove(this.trajectoryLine);
+    }
+    if (this.trajectoryParticles) {
+      this.scene.remove(this.trajectoryParticles);
     }
 
     // Get current asteroid configuration
     const asteroidConfig = getCurrentAsteroid();
 
-    // Create line geometry from trajectory points
-    const points = this.trajectory.map((point) => point.position);
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    // Create trajectory line
+    this.createTrajectoryLine(asteroidConfig);
 
-    const material = new THREE.LineBasicMaterial({
-      color: asteroidConfig.trailColor,
-      transparent: true,
-      opacity: 0.6,
-      linewidth: 2,
-    });
-
-    this.trajectoryLine = new THREE.Line(geometry, material);
-    this.scene.add(this.trajectoryLine);
+    // Create animated particles along trajectory
+    this.createTrajectoryParticles(asteroidConfig);
 
     console.log(
-      `🛤️ Trajectory path visualization created for ${asteroidConfig.name}`
+      `🛤️ Enhanced trajectory visualization created for ${asteroidConfig.name}`
     );
   }
 
   /**
-   * Update asteroid position based on current simulation time
+   * Create the trajectory line
+   */
+  createTrajectoryLine(asteroidConfig) {
+    // Create infinite trajectory line extending backwards from starting point
+    const direction = new THREE.Vector3()
+      .subVectors(this.endPosition, this.startPosition)
+      .normalize();
+
+    // Extend the line infinitely backwards from the starting position
+    const infiniteDistance = 10000; // Very large distance to simulate infinity
+    const infiniteStartPosition = new THREE.Vector3()
+      .copy(this.startPosition)
+      .add(direction.clone().multiplyScalar(-infiniteDistance));
+
+    // Create infinite trajectory points from infinite start to original end
+    const infinitePoints = [];
+    const totalPoints = 300; // Many points for smooth infinite line
+
+    for (let i = 0; i <= totalPoints; i++) {
+      const t = i / totalPoints;
+      const point = new THREE.Vector3().lerpVectors(
+        infiniteStartPosition,
+        this.endPosition,
+        t
+      );
+      infinitePoints.push(point);
+    }
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(infinitePoints);
+
+    // Enhanced material with gradient effect
+    const material = new THREE.LineBasicMaterial({
+      color: asteroidConfig.trailColor,
+      transparent: true,
+      opacity: 0.6,
+      linewidth: 3,
+    });
+
+    this.trajectoryLine = new THREE.Line(geometry, material);
+    this.scene.add(this.trajectoryLine);
+  }
+
+  /**
+   * Create animated particles along trajectory
+   */
+  createTrajectoryParticles(asteroidConfig) {
+    const particleCount = 100;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const sizes = new Float32Array(particleCount);
+
+    const trailColor = new THREE.Color(asteroidConfig.trailColor);
+
+    // Initialize particles along the trajectory
+    for (let i = 0; i < particleCount; i++) {
+      const t = i / particleCount;
+      const position = new THREE.Vector3().lerpVectors(
+        this.startPosition,
+        this.endPosition,
+        t
+      );
+
+      const i3 = i * 3;
+      positions[i3] = position.x;
+      positions[i3 + 1] = position.y;
+      positions[i3 + 2] = position.z;
+
+      // Color with brightness variation
+      const brightness = 0.5 + Math.random() * 0.5;
+      colors[i3] = trailColor.r * brightness;
+      colors[i3 + 1] = trailColor.g * brightness;
+      colors[i3 + 2] = trailColor.b * brightness;
+
+      sizes[i] = Math.random() * 0.5 + 0.2;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+
+    const material = new THREE.PointsMaterial({
+      size: 0.4,
+      transparent: true,
+      opacity: 0.8,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true,
+    });
+
+    this.trajectoryParticles = new THREE.Points(geometry, material);
+    this.scene.add(this.trajectoryParticles);
+
+    // Initialize animation properties
+    this.trajectoryParticleOffsets = new Array(particleCount)
+      .fill()
+      .map(() => Math.random() * Math.PI * 2);
+    this.trajectoryAnimationTime = 0;
+  }
+
+  /**
+   * Update trajectory particle animation
+   */
+  updateTrajectoryAnimation() {
+    if (!this.trajectoryParticles) return;
+
+    this.trajectoryAnimationTime += 0.05;
+
+    const positions = this.trajectoryParticles.geometry.attributes.position;
+    const positionArray = positions.array;
+    const sizes = this.trajectoryParticles.geometry.attributes.size;
+    const sizeArray = sizes.array;
+
+    for (let i = 0; i < positionArray.length / 3; i++) {
+      const i3 = i * 3;
+
+      // Create pulsing effect
+      const pulse =
+        Math.sin(
+          this.trajectoryAnimationTime + this.trajectoryParticleOffsets[i]
+        ) *
+          0.3 +
+        0.7;
+      sizeArray[i] = (Math.random() * 0.5 + 0.2) * pulse;
+
+      // Add subtle movement along trajectory
+      const t = i / (positionArray.length / 3);
+      const basePosition = new THREE.Vector3().lerpVectors(
+        this.startPosition,
+        this.endPosition,
+        t
+      );
+
+      // Add flowing motion
+      const flowOffset =
+        (this.trajectoryAnimationTime + i * 0.1) % (Math.PI * 2);
+      const flowIntensity = 0.5;
+
+      positionArray[i3] = basePosition.x + Math.sin(flowOffset) * flowIntensity;
+      positionArray[i3 + 1] =
+        basePosition.y + Math.cos(flowOffset * 1.3) * flowIntensity;
+      positionArray[i3 + 2] =
+        basePosition.z + Math.sin(flowOffset * 0.7) * flowIntensity;
+    }
+
+    positions.needsUpdate = true;
+    sizes.needsUpdate = true;
+
+    // Update material opacity with pulsing effect
+    const basePulse = Math.sin(this.trajectoryAnimationTime * 2) * 0.2 + 0.8;
+    this.trajectoryParticles.material.opacity = basePulse;
+  }
+
+  /**
+   * Update asteroid position based on current simulation time with enhanced effects
    */
   update() {
     if (!this.isActive || !this.asteroid || !this.trajectory.length) return;
@@ -202,13 +460,18 @@ export class AsteroidTrajectory {
     // Check if we're before the start date
     if (currentDate < this.startDate) {
       this.asteroid.position.copy(this.startPosition);
+      this.updateParticleTrail();
       return;
     }
 
     // Calculate progress based on time
     const totalTime = this.impactDate - this.startDate;
     const elapsed = currentDate - this.startDate;
-    const progress = Math.max(0, Math.min(1, elapsed / totalTime));
+    let progress = Math.max(0, Math.min(1, elapsed / totalTime));
+
+    // Add acceleration effect as asteroid gets closer to Earth (gravity effect)
+    // Use easing function to simulate gravitational acceleration
+    progress = this.applyGravitationalAcceleration(progress);
 
     // Interpolate position
     const currentPosition = new THREE.Vector3().lerpVectors(
@@ -219,9 +482,27 @@ export class AsteroidTrajectory {
 
     this.asteroid.position.copy(currentPosition);
 
-    // Optional: Rotate asteroid
-    this.asteroid.rotation.x += 0.01;
-    this.asteroid.rotation.y += 0.02;
+    // Enhanced rotation with realistic asteroid tumbling
+    if (this.asteroidRotationSpeed) {
+      this.asteroid.rotation.x += this.asteroidRotationSpeed.x;
+      this.asteroid.rotation.y += this.asteroidRotationSpeed.y;
+      this.asteroid.rotation.z += this.asteroidRotationSpeed.z;
+    }
+
+    // Scale asteroid slightly as it approaches (perspective effect)
+    const scaleMultiplier = 1 + progress * 0.5; // Grows up to 50% larger
+    this.asteroid.scale.setScalar(scaleMultiplier);
+
+    // Update particle trail
+    this.updateParticleTrail();
+
+    // Update trajectory animation
+    this.updateTrajectoryAnimation();
+
+    // Add atmospheric entry effects when close to Earth
+    if (progress > 0.8) {
+      this.addAtmosphericEntryEffects(progress);
+    }
 
     // Debug info
     if (Math.random() < 0.01) {
@@ -237,59 +518,454 @@ export class AsteroidTrajectory {
   }
 
   /**
-   * Trigger impact event
+   * Apply gravitational acceleration effect
+   * @param {number} linearProgress - Linear progress from 0 to 1
+   * @returns {number} - Accelerated progress
    */
-  triggerImpact() {
-    console.log("ASTEROID IMPACT!");
-
-    // Position asteroid at Earth
-    this.asteroid.position.copy(this.endPosition);
-
-    // Create impact effects
-    this.createImpactEffects();
-
-    // Stop the simulation
-    this.isActive = false;
+  applyGravitationalAcceleration(linearProgress) {
+    // Use quadratic easing for the last 30% of the journey
+    if (linearProgress > 0.7) {
+      const lastPhase = (linearProgress - 0.7) / 0.3;
+      const accelerated = lastPhase * lastPhase;
+      return 0.7 + accelerated * 0.3;
+    }
+    return linearProgress;
   }
 
   /**
-   * Create simple impact effects
+   * Update particle trail to follow asteroid
+   */
+  updateParticleTrail() {
+    if (!this.particleTrail || !this.asteroid) return;
+
+    // Add current asteroid position to trail
+    this.trailPositions.push(this.asteroid.position.clone());
+
+    // Limit trail length
+    if (this.trailPositions.length > this.trailMaxLength) {
+      this.trailPositions.shift();
+    }
+
+    // Update particle positions
+    const positions = this.particleTrail.geometry.attributes.position;
+    const positionArray = positions.array;
+
+    for (
+      let i = 0;
+      i < Math.min(this.trailPositions.length, positionArray.length / 3);
+      i++
+    ) {
+      const trailPos = this.trailPositions[this.trailPositions.length - 1 - i];
+      const particleIndex = i * 3;
+
+      // Add some randomness to particle positions
+      const spread = 0.5;
+      positionArray[particleIndex] =
+        trailPos.x + (Math.random() - 0.5) * spread;
+      positionArray[particleIndex + 1] =
+        trailPos.y + (Math.random() - 0.5) * spread;
+      positionArray[particleIndex + 2] =
+        trailPos.z + (Math.random() - 0.5) * spread;
+    }
+
+    positions.needsUpdate = true;
+  }
+
+  /**
+   * Add atmospheric entry effects when asteroid is close to Earth
+   * @param {number} progress - Current progress (0-1)
+   */
+  addAtmosphericEntryEffects(progress) {
+    if (!this.asteroid) return;
+
+    // Increase emissive intensity as asteroid heats up
+    const heatIntensity = (progress - 0.8) / 0.2; // 0 to 1 for last 20%
+    const material = this.asteroid.material;
+
+    // Heat up effect - make it glow more
+    material.emissiveIntensity = 0.2 + heatIntensity * 0.8;
+
+    // Shift color towards red/orange as it heats up
+    const originalColor = new THREE.Color(material.color);
+    const heatColor = new THREE.Color(0xff4400); // Orange-red
+    material.emissive.lerpColors(originalColor, heatColor, heatIntensity * 0.5);
+
+    // Add flickering effect
+    const flicker = Math.sin(Date.now() * 0.02) * 0.1;
+    material.emissiveIntensity += flicker * heatIntensity;
+  }
+
+  /**
+   * Trigger impact event
+   */
+  triggerImpact() {
+    console.log("🚨 ASTEROID IMPACT DETECTED!");
+
+    // Position asteroid at Earth for final moment
+    this.asteroid.position.copy(this.endPosition);
+
+    // Create brief impact effects
+    this.createImpactEffects();
+
+    // Remove asteroid and trajectory after brief delay
+    setTimeout(() => {
+      console.log("💥 Removing asteroid and trajectory...");
+
+      // Remove asteroid from scene
+      if (this.asteroid) {
+        this.scene.remove(this.asteroid);
+        this.asteroid = null;
+      }
+
+      // Remove trajectory line from scene
+      if (this.trajectoryLine) {
+        this.scene.remove(this.trajectoryLine);
+        this.trajectoryLine = null;
+      }
+
+      // Stop the simulation
+      this.isActive = false;
+
+      // Play crash video
+      console.log("🎬 Starting crash video sequence...");
+      this.crashVideo.play();
+    }, 1000); // 1 second delay to show impact effects briefly
+  }
+
+  /**
+   * Create enhanced impact effects with multiple stages
    */
   createImpactEffects() {
     // Get current asteroid configuration
     const asteroidConfig = getCurrentAsteroid();
 
-    // Create explosion particle system using configuration
-    const particleCount = asteroidConfig.explosionParticles;
+    console.log(
+      `💥 Creating enhanced impact effects for ${asteroidConfig.name}`
+    );
+
+    // Stage 1: Initial flash
+    this.createInitialFlash();
+
+    // Stage 2: Main explosion (immediate)
+    this.createMainExplosion(asteroidConfig);
+
+    // Stage 3: Shockwave (0.2s delay)
+    setTimeout(() => {
+      this.createShockwave();
+    }, 200);
+
+    // Stage 4: Debris cloud (0.5s delay)
+    setTimeout(() => {
+      this.createDebrisCloud(asteroidConfig);
+    }, 500);
+
+    // Stage 5: Secondary explosions (1s delay)
+    setTimeout(() => {
+      this.createSecondaryExplosions();
+    }, 1000);
+
+    // Add screen effects
+    this.createScreenEffects();
+  }
+
+  /**
+   * Create initial bright flash effect with reduced size
+   */
+  createInitialFlash() {
+    const flashGeometry = new THREE.SphereGeometry(8, 16, 16); // Reduced from 15 to 8
+    const flashMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.8, // Reduced from 0.9
+    });
+
+    const flash = new THREE.Mesh(flashGeometry, flashMaterial);
+    flash.position.copy(this.endPosition);
+    this.scene.add(flash);
+
+    // Animate flash expansion and fade - faster animation
+    let scale = 0.1;
+    let opacity = 0.8;
+    const flashInterval = setInterval(() => {
+      scale += 0.4; // Faster expansion
+      opacity -= 0.15; // Faster fade
+
+      flash.scale.setScalar(scale);
+      flash.material.opacity = Math.max(0, opacity);
+
+      if (opacity <= 0) {
+        this.scene.remove(flash);
+        clearInterval(flashInterval);
+      }
+    }, 40); // Slightly faster interval (was 50)
+  }
+
+  /**
+   * Create main explosion with controlled particles
+   */
+  createMainExplosion(asteroidConfig) {
+    // Reduce particle count - use original amount instead of doubling
+    const particleCount = Math.min(asteroidConfig.explosionParticles, 150); // Cap at 150 particles
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const sizes = new Float32Array(particleCount);
 
-    for (let i = 0; i < particleCount * 3; i += 3) {
-      positions[i] = this.endPosition.x + (Math.random() - 0.5) * 5;
-      positions[i + 1] = this.endPosition.y + (Math.random() - 0.5) * 5;
-      positions[i + 2] = this.endPosition.z + (Math.random() - 0.5) * 5;
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+
+      // Initial positions at impact point
+      positions[i3] = this.endPosition.x;
+      positions[i3 + 1] = this.endPosition.y;
+      positions[i3 + 2] = this.endPosition.z;
+
+      // Reduced velocities for more controlled explosion
+      velocities[i3] = (Math.random() - 0.5) * 8; // Reduced from 20 to 8
+      velocities[i3 + 1] = (Math.random() - 0.5) * 8;
+      velocities[i3 + 2] = (Math.random() - 0.5) * 8;
+
+      // Color gradient from white to red to orange
+      const colorType = Math.random();
+      if (colorType < 0.3) {
+        // White hot
+        colors[i3] = 1.0;
+        colors[i3 + 1] = 1.0;
+        colors[i3 + 2] = 1.0;
+      } else if (colorType < 0.6) {
+        // Red
+        colors[i3] = 1.0;
+        colors[i3 + 1] = 0.2;
+        colors[i3 + 2] = 0.0;
+      } else {
+        // Orange
+        colors[i3] = 1.0;
+        colors[i3 + 1] = 0.5;
+        colors[i3 + 2] = 0.0;
+      }
+
+      // Smaller particle sizes
+      sizes[i] = Math.random() * 1.2 + 0.3; // Reduced from 2 + 0.5
     }
 
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 
     const material = new THREE.PointsMaterial({
-      color: 0xff0000, // Always use red for collision effects
-      size: 0.5,
+      size: 0.8, // Reduced from 1.0
       transparent: true,
-      opacity: 0.8,
+      opacity: 1.0,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true,
     });
 
     const explosion = new THREE.Points(geometry, material);
     this.scene.add(explosion);
 
-    // Remove explosion after 3 seconds
-    setTimeout(() => {
-      this.scene.remove(explosion);
-    }, 3000);
+    // Animate explosion particles
+    let time = 0;
+    const maxTime = 120; // Reduced from 300 to 120 (2 seconds instead of 5)
+    const explosionInterval = setInterval(() => {
+      time++;
+      const positions = explosion.geometry.attributes.position;
+      const positionArray = positions.array;
 
-    console.log(
-      `Impact effects created for ${asteroidConfig.name} (red explosion)`
-    );
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        positionArray[i3] += velocities[i3] * 0.08; // Slightly reduced speed
+        positionArray[i3 + 1] += velocities[i3 + 1] * 0.08;
+        positionArray[i3 + 2] += velocities[i3 + 2] * 0.08;
+
+        // Apply gravity
+        velocities[i3 + 1] -= 0.08; // Reduced gravity effect
+      }
+
+      positions.needsUpdate = true;
+
+      // Faster fade out
+      explosion.material.opacity = Math.max(0, 1 - time / maxTime);
+
+      if (time >= maxTime) {
+        this.scene.remove(explosion);
+        clearInterval(explosionInterval);
+      }
+    }, 16); // ~60fps
+  }
+
+  /**
+   * Create expanding shockwave effect with controlled size
+   */
+  createShockwave() {
+    const shockwaveGeometry = new THREE.RingGeometry(0, 1, 32);
+    const shockwaveMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffaa00,
+      transparent: true,
+      opacity: 0.6, // Reduced from 0.7
+      side: THREE.DoubleSide,
+    });
+
+    const shockwave = new THREE.Mesh(shockwaveGeometry, shockwaveMaterial);
+    shockwave.position.copy(this.endPosition);
+    shockwave.lookAt(0, 0, 0); // Orient towards camera
+    this.scene.add(shockwave);
+
+    // Animate shockwave expansion with smaller maximum size
+    let scale = 0.1;
+    let opacity = 0.6;
+    const maxScale = 15; // Limit maximum size
+    const shockwaveInterval = setInterval(() => {
+      scale += 1.5; // Slightly slower expansion
+      opacity -= 0.06; // Faster fade
+
+      shockwave.scale.setScalar(Math.min(scale, maxScale));
+      shockwave.material.opacity = Math.max(0, opacity);
+
+      if (opacity <= 0 || scale >= maxScale) {
+        this.scene.remove(shockwave);
+        clearInterval(shockwaveInterval);
+      }
+    }, 50);
+  }
+
+  /**
+   * Create debris cloud effect with reduced duration
+   */
+  createDebrisCloud(asteroidConfig) {
+    const debrisCount = 25; // Reduced from 50
+    const debrisGroup = new THREE.Group();
+
+    for (let i = 0; i < debrisCount; i++) {
+      const debrisGeometry = new THREE.BoxGeometry(
+        Math.random() * 0.3 + 0.1, // Smaller debris
+        Math.random() * 0.3 + 0.1,
+        Math.random() * 0.3 + 0.1
+      );
+      const debrisMaterial = new THREE.MeshPhongMaterial({
+        color: asteroidConfig.color,
+        emissive: new THREE.Color(asteroidConfig.color).multiplyScalar(0.2),
+      });
+
+      const debris = new THREE.Mesh(debrisGeometry, debrisMaterial);
+      debris.position.copy(this.endPosition);
+      debris.position.add(
+        new THREE.Vector3(
+          (Math.random() - 0.5) * 6, // Reduced spread from 10 to 6
+          (Math.random() - 0.5) * 6,
+          (Math.random() - 0.5) * 6
+        )
+      );
+
+      // Random rotation
+      debris.rotation.set(
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2
+      );
+
+      debrisGroup.add(debris);
+    }
+
+    this.scene.add(debrisGroup);
+
+    // Remove debris after 4 seconds instead of 10
+    setTimeout(() => {
+      this.scene.remove(debrisGroup);
+    }, 4000);
+  }
+
+  /**
+   * Create fewer secondary explosions
+   */
+  createSecondaryExplosions() {
+    const numSecondary = 2; // Reduced from 3
+
+    for (let i = 0; i < numSecondary; i++) {
+      setTimeout(() => {
+        const secondaryPosition = this.endPosition.clone().add(
+          new THREE.Vector3(
+            (Math.random() - 0.5) * 12, // Reduced spread from 20 to 12
+            (Math.random() - 0.5) * 12,
+            (Math.random() - 0.5) * 12
+          )
+        );
+
+        this.createSecondaryExplosion(secondaryPosition);
+      }, i * 300);
+    }
+  }
+
+  /**
+   * Create a single secondary explosion with fewer particles
+   */
+  createSecondaryExplosion(position) {
+    const particleCount = 50; // Reduced from 100
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+      positions[i3] = position.x + (Math.random() - 0.5) * 3; // Reduced spread from 5 to 3
+      positions[i3 + 1] = position.y + (Math.random() - 0.5) * 3;
+      positions[i3 + 2] = position.z + (Math.random() - 0.5) * 3;
+
+      // Orange/red colors
+      colors[i3] = 1.0;
+      colors[i3 + 1] = Math.random() * 0.5;
+      colors[i3 + 2] = 0.0;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 0.6, // Reduced from 0.8
+      transparent: true,
+      opacity: 0.8,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const secondaryExplosion = new THREE.Points(geometry, material);
+    this.scene.add(secondaryExplosion);
+
+    // Remove after 1.5 seconds instead of 2
+    setTimeout(() => {
+      this.scene.remove(secondaryExplosion);
+    }, 1500);
+  }
+
+  /**
+   * Create screen effects for impact
+   */
+  createScreenEffects() {
+    // Add camera shake effect by modifying the camera position slightly
+    const originalCameraShake = 0;
+    let shakeIntensity = 5;
+    let shakeTime = 0;
+    const maxShakeTime = 100; // frames
+
+    const shakeInterval = setInterval(() => {
+      if (this.scene && this.scene.userData && this.scene.userData.camera) {
+        const camera = this.scene.userData.camera;
+
+        // Apply random shake
+        camera.position.x += (Math.random() - 0.5) * shakeIntensity;
+        camera.position.y += (Math.random() - 0.5) * shakeIntensity;
+        camera.position.z += (Math.random() - 0.5) * shakeIntensity;
+      }
+
+      shakeTime++;
+      shakeIntensity *= 0.95; // Gradually reduce shake
+
+      if (shakeTime >= maxShakeTime || shakeIntensity < 0.1) {
+        clearInterval(shakeInterval);
+      }
+    }, 16); // ~60fps
+
+    console.log("📺 Screen effects added (camera shake)");
   }
 
   /**
@@ -331,8 +1007,20 @@ export class AsteroidTrajectory {
       this.trajectoryLine = null;
     }
 
+    if (this.trajectoryParticles) {
+      this.scene.remove(this.trajectoryParticles);
+      this.trajectoryParticles = null;
+    }
+
+    if (this.particleTrail) {
+      this.scene.remove(this.particleTrail);
+      this.particleTrail = null;
+    }
+
     this.isActive = false;
     this.trajectory = [];
+    this.trailPositions = [];
+    this.asteroidRotationSpeed = null;
 
     console.log("Asteroid simulation reset");
   }
