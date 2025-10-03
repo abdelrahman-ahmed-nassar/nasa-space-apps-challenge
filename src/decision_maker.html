@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Maker Dashboard - Asteroid Threats</title>
+    <link rel="stylesheet" href="decision_maker.css">
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>Asteroid Threat Intelligence</h1>
+            <p class="subtitle">High-Level Overview for Decision Makers</p>
+        </header>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h2>Total Potential Threats</h2>
+                <p id="total-hazards">-</p>
+            </div>
+            <div class="kpi-card">
+                <h2>Next Close Approach</h2>
+                <p id="next-threat-name">-</p>
+                <small id="next-threat-date">-</small>
+            </div>
+            <div class="kpi-card">
+                <h2>Highest Risk Asteroid</h2>
+                <p id="top-threat-name">-</p>
+                <small id="top-threat-score">-</small>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="chart-card">
+                <h3>Top 5 Threats by Score</h3>
+                <canvas id="topThreatsChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Asteroid Classification</h3>
+                <canvas id="classificationChart"></canvas>
+            </div>
+            
+            <div class="asteroid-image-container">
+                <img src="asteroid.png" alt="Asteroid">
+            </div>
+            
+            <div class="chart-card">
+                <h3>Upcoming Threat Timeline</h3>
+                <canvas id="timelineChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Threat Risk Matrix</h3>
+                <canvas id="riskMatrixChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="decision_maker.js"></script>
+</body>
+</html>
