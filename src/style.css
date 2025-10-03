@@ -1147,3 +1147,520 @@ body {
   border-radius: 25px;
   box-shadow: 0px 0px 15px 3px rgba(255, 255, 0, 0.3);
 }
+
+/* Asteroid Swiper Styles - NASA Eyes on Asteroids Design */
+.asteroid-swiper-container {
+  position: fixed;
+  top: 50%;
+  left: 50px;
+  transform: translateY(-50%);
+  z-index: 900;
+  width: 320px;
+  height: 420px;
+  opacity: 1;
+  pointer-events: all;
+}
+
+.asteroid-swiper-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.asteroid-cards-container {
+  width: 100%;
+  height: 380px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 16px;
+  background: rgba(20, 25, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.asteroid-cards {
+  display: flex;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+}
+
+.asteroid-card {
+  min-width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: transparent;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.asteroid-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    var(--asteroid-color, #ff4444),
+    transparent
+  );
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.asteroid-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.asteroid-name {
+  font-size: 36px;
+  font-weight: 200;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: none;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.asteroid-risk-badge {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.risk-high {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.risk-medium {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.risk-low {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.risk-very-low {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.asteroid-description {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.4;
+  margin: 16px 0 0 0;
+  flex-grow: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+}
+
+/* NASA-style data sections */
+.asteroid-data-section {
+  margin-bottom: 12px;
+}
+
+.asteroid-data-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+
+.asteroid-data-value {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asteroid-data-value .estimate-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+/* NASA-style countdown section */
+.asteroid-countdown {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #00ff88;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.countdown-label {
+  color: #00ff88;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+
+.countdown-time {
+  color: #00ff88;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.countdown-units {
+  font-size: 8px;
+  color: #00ff88;
+  margin-top: 3px;
+  letter-spacing: 3px;
+  opacity: 0.8;
+}
+
+/* Update asteroid stats to match NASA design */
+  margin: 8px 0;
+  flex-grow: 1;
+}
+
+.asteroid-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.asteroid-stat {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.stat-value {
+  font-size: 11px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Navigation buttons - NASA style */
+.swiper-nav-btn {
+  position: absolute;
+  bottom: -50px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(20, 25, 35, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  z-index: 1001;
+}
+
+.swiper-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.swiper-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.prev-asteroid {
+  left: 0;
+}
+
+.next-asteroid {
+  right: 0;
+}
+
+.swiper-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Asteroid indicator - NASA style */
+.asteroid-indicator {
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 25, 35, 0.9);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: 'Courier New', monospace;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .asteroid-swiper-container {
+    width: 280px;
+    left: 20px;
+    height: 380px;
+  }
+  
+  .asteroid-cards-container {
+    height: 340px;
+  }
+  
+  .asteroid-card {
+    padding: 16px;
+  }
+  
+  .asteroid-name {
+    font-size: 24px;
+  }
+  
+  .asteroid-description {
+    font-size: 12px;
+  }
+  
+  .countdown-time {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .asteroid-swiper-container {
+    width: 260px;
+    left: 10px;
+    height: 360px;
+  }
+  
+  .asteroid-cards-container {
+    height: 320px;
+  }
+  
+  .asteroid-name {
+    font-size: 20px;
+  }
+}/* Hide asteroid swiper initially */
+.asteroid-swiper-container.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(-20px);
+  transition: all 0.3s ease;
+}
+
+.asteroid-swiper-container.visible {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(-50%) translateX(0);
+  transition: all 0.3s ease;
+}
+
+/* Asteroid Warning Alert Styles */
+.asteroid-warning-alert {
+  position: fixed;
+  top: 80px;
+  right: 30px;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.15) 0%, rgba(139, 0, 0, 0.2) 100%);
+  border: 2px solid #ff4444;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 9000;
+  box-shadow: 0 4px 20px rgba(255, 68, 68, 0.3);
+  min-width: 280px;
+}
+
+.asteroid-warning-alert:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(255, 68, 68, 0.4);
+  border-color: #ff6666;
+}
+
+.asteroid-warning-alert.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(100%) translateY(-2px);
+  transition: all 0.5s ease;
+}
+
+.warning-icon-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.warning-icon {
+  font-size: 24px;
+  z-index: 2;
+  position: relative;
+}
+
+.warning-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, rgba(255, 68, 68, 0.4) 0%, rgba(255, 68, 68, 0.1) 50%, transparent 70%);
+  border-radius: 50%;
+  animation: warningPulse 2s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.8;
+  }
+}
+
+.warning-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.warning-title {
+  color: #ff6666;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.warning-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+/* Close button for asteroid cards */
+.close-cards-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.close-cards-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.close-cards-btn span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.close-cards-btn:hover span {
+  color: #ffffff;
+}
+
+/* Global hidden class */
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Responsive design for warning alert */
+@media (max-width: 768px) {
+  .asteroid-warning-alert {
+    right: 20px;
+    top: 70px;
+    min-width: 250px;
+    padding: 14px 16px;
+  }
+  
+  .warning-title {
+    font-size: 12px;
+  }
+  
+  .warning-subtitle {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .asteroid-warning-alert {
+    right: 15px;
+    top: 60px;
+    min-width: 220px;
+    padding: 12px 14px;
+  }
+}

@@ -22,6 +22,18 @@
     <div><script type="module" src="./script.js"></script></div>
     <script type="module" src="./navigation.js"></script>
 
+    <!-- Asteroid Warning Alert -->
+    <div id="asteroidWarningAlert" class="asteroid-warning-alert hidden">
+      <div class="warning-icon-container">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-pulse"></div>
+      </div>
+      <div class="warning-content">
+        <div class="warning-title">ASTEROID IMPACT DETECTED</div>
+        <div class="warning-subtitle">Click to view threat analysis</div>
+      </div>
+    </div>
+
     <!-- Time Control Bar -->
     <div id="timeControlContainer" class="time-control-container">
       <div class="time-display">
@@ -79,6 +91,36 @@
           <button id="nextSpeed" class="control-btn next-btn">
             &#9654;&#9654;
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asteroid Swiper Container -->
+    <div id="asteroidSwiperContainer" class="asteroid-swiper-container hidden">
+      <div class="asteroid-swiper-wrapper">
+        <!-- Close button -->
+        <button id="closeAsteroidCards" class="close-cards-btn">
+          <span>&times;</span>
+        </button>
+
+        <div class="asteroid-cards-container">
+          <div id="asteroidCards" class="asteroid-cards">
+            <!-- Asteroid cards will be dynamically generated -->
+          </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <button id="prevAsteroid" class="swiper-nav-btn prev-asteroid">
+          <span>&#9664;</span>
+        </button>
+        <button id="nextAsteroid" class="swiper-nav-btn next-asteroid">
+          <span>&#9654;</span>
+        </button>
+
+        <!-- Current asteroid indicator -->
+        <div class="asteroid-indicator">
+          <span id="currentAsteroidIndex">1</span> /
+          <span id="totalAsteroids">5</span>
         </div>
       </div>
     </div>

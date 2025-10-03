@@ -71,6 +71,119 @@ export const SETTINGS = {
   sunIntensity: 1.9,
 };
 
+// Asteroid configurations - Array of 5 different asteroids
+export const ASTEROIDS_CONFIG = [
+  {
+    id: 1,
+    name: "Apophis",
+    description:
+      "A near-Earth asteroid discovered in 2004. Close approach to Earth in 2029.",
+    startPosition: { x: 180, y: 60, z: 120 },
+    endPosition: { x: 85, y: 5, z: 15 }, // Slightly offset from Earth center
+    impactDate: "2026-04-13", // Apophis's actual close approach date
+    size: 1.2,
+    color: 0xff4444,
+    trailColor: 0xff6600,
+    explosionParticles: 120,
+    riskLevel: "High",
+    discoveryYear: "2004",
+    estimatedDiameter: "370m",
+    diameter: "370 meters",
+    velocity: "7.42 km/s",
+  },
+  {
+    id: 2,
+    name: "Bennu",
+    description:
+      "Carbon-rich asteroid studied by NASA's OSIRIS-REx mission. Potential Earth impact risk.",
+    startPosition: { x: -140, y: 90, z: -180 },
+    endPosition: { x: 95, y: -8, z: -12 }, // Different impact region
+    impactDate: "2027-09-25", // Future potential impact scenario
+    size: 0.8,
+    color: 0x444444,
+    trailColor: 0x666699,
+    explosionParticles: 80,
+    riskLevel: "Medium",
+    discoveryYear: "1999",
+    estimatedDiameter: "490m",
+    diameter: "490 meters",
+    velocity: "6.14 km/s",
+  },
+  {
+    id: 3,
+    name: "Didymos",
+    description:
+      "Binary asteroid system. Target of NASA's DART mission to test planetary defense.",
+    startPosition: { x: 220, y: -40, z: 95 },
+    endPosition: { x: 88, y: 10, z: 8 }, // Northern hemisphere impact
+    impactDate: "2028-03-10", // Hypothetical future scenario
+    size: 1.0,
+    color: 0x8b4513,
+    trailColor: 0xcd853f,
+    explosionParticles: 100,
+    riskLevel: "Low",
+    discoveryYear: "1996",
+    estimatedDiameter: "780m",
+    diameter: "780 meters",
+    velocity: "5.73 km/s",
+  },
+  {
+    id: 4,
+    name: "Ryugu",
+    description:
+      "Diamond-shaped asteroid visited by Japan's Hayabusa2 spacecraft. Contains water-bearing minerals.",
+    startPosition: { x: -95, y: -140, z: 230 },
+    endPosition: { x: 92, y: -6, z: 18 }, // Pacific Ocean impact region
+    impactDate: "2029-11-15", // Long-term scenario
+    size: 0.9,
+    color: 0x2f4f4f,
+    trailColor: 0x4682b4,
+    explosionParticles: 90,
+    riskLevel: "Very Low",
+    discoveryYear: "1999",
+    estimatedDiameter: "900m",
+    diameter: "900 meters",
+    velocity: "6.27 km/s",
+  },
+  {
+    id: 5,
+    name: "Eros",
+    description:
+      "First asteroid to be orbited and landed upon by a spacecraft. Elongated shape, rich in metals.",
+    startPosition: { x: 130, y: 170, z: -140 },
+    endPosition: { x: 87, y: 12, z: -10 }, // European/African region impact
+    impactDate: "2028-07-20", // Summer impact scenario
+    size: 1.5,
+    color: 0xffd700,
+    trailColor: 0xffa500,
+    explosionParticles: 150,
+    riskLevel: "Medium",
+    discoveryYear: "1898",
+    estimatedDiameter: "17km",
+    diameter: "17 kilometers",
+    velocity: "5.04 km/s",
+  },
+];
+
+// Current asteroid index for tracking which one is active
+export let CURRENT_ASTEROID_INDEX = 0;
+
+// Function to get current asteroid configuration
+export const getCurrentAsteroid = () =>
+  ASTEROIDS_CONFIG[CURRENT_ASTEROID_INDEX];
+
+// Function to set current asteroid
+export const setCurrentAsteroid = (index) => {
+  if (index >= 0 && index < ASTEROIDS_CONFIG.length) {
+    CURRENT_ASTEROID_INDEX = index;
+    return true;
+  }
+  return false;
+};
+
+// Legacy asteroid config for backward compatibility
+export const ASTEROID_CONFIG = getCurrentAsteroid();
+
 // Time control configuration
 export const TIME_CONTROL_CONFIG = {
   speedModes: [

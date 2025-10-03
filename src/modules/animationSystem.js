@@ -10,13 +10,15 @@ export class AnimationSystem {
     timeControl,
     interactionSystem,
     composer,
-    controls
+    controls,
+    asteroidTrajectory = null
   ) {
     this.planetSystem = planetSystem;
     this.timeControl = timeControl;
     this.interactionSystem = interactionSystem;
     this.composer = composer;
     this.controls = controls;
+    this.asteroidTrajectory = asteroidTrajectory;
 
     this.isAnimating = false;
   }
@@ -52,6 +54,9 @@ export class AnimationSystem {
     this.animatePlanets();
     this.animateMoons();
     this.animateAsteroids();
+
+    // Update asteroid trajectory if active
+    this.updateAsteroidTrajectory();
 
     // Update interaction systems
     this.interactionSystem.updateOutlineHighlighting();
@@ -263,6 +268,22 @@ export class AnimationSystem {
       asteroid.position.x = newX;
       asteroid.position.z = newZ;
     });
+  }
+
+  /**
+   * Update asteroid trajectory simulation
+   */
+  updateAsteroidTrajectory() {
+    if (this.asteroidTrajectory && this.asteroidTrajectory.getIsActive()) {
+      this.asteroidTrajectory.update();
+    }
+  }
+
+  /**
+   * Set asteroid trajectory system
+   */
+  setAsteroidTrajectory(asteroidTrajectory) {
+    this.asteroidTrajectory = asteroidTrajectory;
   }
 
   /**
