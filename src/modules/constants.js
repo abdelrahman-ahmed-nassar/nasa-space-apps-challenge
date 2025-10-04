@@ -78,9 +78,9 @@ export const ASTEROIDS_CONFIG = [
     name: "4953 (1990 MU)",
     description:
       "A near-Earth asteroid with multiple close approaches. First discovered in 1990 with ongoing monitoring for impact risk.",
-    startPosition: { x: -95, y: -140, z: 230 },
+    startPosition: { x: 180, y: 60, z: 120 },
     endPosition: { x: 92, y: -6, z: 18 },
-    impactDate: "2027-06-06",
+    impactDate: "2026-07-15",
     size: 0.9,
     color: 0x2f4f4f,
     trailColor: 0x4682b4,

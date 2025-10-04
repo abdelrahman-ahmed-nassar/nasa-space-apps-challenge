@@ -3,7 +3,7 @@ import { PlanetSystem } from "./modules/planetSystem.js";
 import { TimeControl } from "./modules/timeControl.js";
 import { InteractionSystem } from "./modules/interactionSystem.js";
 import { AnimationSystem } from "./modules/animationSystem.js";
-import { IntroVideo } from "./modules/introVideo.js";
+import { StartingPage } from "./modules/startingPage.js";
 import { AsteroidTrajectory } from "./modules/AsteroidTrajectory.js";
 import {
   ASTEROIDS_CONFIG,
@@ -97,7 +97,7 @@ class SolarSystemApp {
     this.timeControl = null;
     this.interactionSystem = null;
     this.animationSystem = null;
-    this.introVideo = null;
+    this.startingPage = null;
     this.asteroidTrajectory = null;
     this.isInitialized = false;
 
@@ -108,21 +108,23 @@ class SolarSystemApp {
   }
 
   /**
-   * Initialize the intro video first
+   * Initialize the starting page first
    */
   async start() {
-    console.log("🎬 Starting Solar System 3D Application with intro video...");
+    console.log(
+      "🎬 Starting Solar System 3D Application with starting page..."
+    );
 
-    // Initialize intro video
-    this.introVideo = new IntroVideo();
-    this.introVideo.init(() => {
-      // This callback runs when intro is complete
+    // Initialize starting page
+    this.startingPage = new StartingPage();
+    this.startingPage.init(() => {
+      // This callback runs when user clicks "DEFEND EARTH"
       this.initMainApp();
     });
   }
 
   /**
-   * Initialize the main application after intro
+   * Initialize the main application after starting page
    */
   async initMainApp() {
     if (this.isInitialized) return;

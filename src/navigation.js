@@ -14,6 +14,8 @@ export class Navigation {
         // For dashboard route, navigate directly without redirect
         if (href === "/dashboard") {
           window.location.href = "/dashboard";
+        } else if (href === "/decision_maker") {
+          window.location.href = "/decision_maker";
         } else {
           this.navigate(href);
         }
@@ -40,6 +42,9 @@ export class Navigation {
     switch (path) {
       case "/dashboard":
         // Dashboard route is handled by Vite middleware
+        break;
+      case "/decision_maker":
+        // Decision maker route is handled by Vite middleware
         break;
       case "/":
       default:

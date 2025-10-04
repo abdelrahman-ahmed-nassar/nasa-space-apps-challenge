@@ -1,61 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decision Maker Dashboard - Asteroid Threats</title>
-    <link rel="stylesheet" href="decision_maker.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NASA Decision Maker Dashboard | Asteroid Threats</title>
+    <link rel="stylesheet" href="/decision_maker.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
     <div class="main-container">
-        <header>
-            <h1>Asteroid Threat Intelligence</h1>
-            <p class="subtitle">High-Level Overview for Decision Makers</p>
-        </header>
+      <nav class="top-navigation">
+        <div class="nav-brand">
+          <div class="nasa-logo">
+            <span class="logo-text">NASA</span>
+            <span class="logo-subtitle">DECISION SUPPORT</span>
+          </div>
+        </div>
+        <div class="nav-links">
+          <a href="/dashboard" class="nav-link">
+            <span class="nav-icon">🔬</span>
+            <span class="nav-text">Scientific Dashboard</span>
+          </a>
+          <a href="/" class="nav-link">
+            <span class="nav-icon">🌌</span>
+            <span class="nav-text">Main Simulation</span>
+          </a>
+        </div>
+      </nav>
 
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <h2>Total Potential Threats</h2>
-                <p id="total-hazards">-</p>
-            </div>
-            <div class="kpi-card">
-                <h2>Next Close Approach</h2>
-                <p id="next-threat-name">-</p>
-                <small id="next-threat-date">-</small>
-            </div>
-            <div class="kpi-card">
-                <h2>Highest Risk Asteroid</h2>
-                <p id="top-threat-name">-</p>
-                <small id="top-threat-score">-</small>
-            </div>
+      <header>
+        <h1>Asteroid Threat Intelligence</h1>
+        <p class="subtitle">High-Level Overview for Decision Makers</p>
+      </header>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <h2>Total Potential Threats</h2>
+          <p id="total-hazards">-</p>
+        </div>
+        <div class="kpi-card">
+          <h2>Next Close Approach</h2>
+          <p id="next-threat-name">-</p>
+          <small id="next-threat-date">-</small>
+        </div>
+        <div class="kpi-card">
+          <h2>Highest Risk Asteroid</h2>
+          <p id="top-threat-name">-</p>
+          <small id="top-threat-score">-</small>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="chart-card">
+          <h3>Top 5 Threats by Score</h3>
+          <canvas id="topThreatsChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Asteroid Classification</h3>
+          <canvas id="classificationChart"></canvas>
         </div>
 
-        <div class="dashboard-grid">
-            <div class="chart-card">
-                <h3>Top 5 Threats by Score</h3>
-                <canvas id="topThreatsChart"></canvas>
-            </div>
-            <div class="chart-card">
-                <h3>Asteroid Classification</h3>
-                <canvas id="classificationChart"></canvas>
-            </div>
-            
-            <div class="asteroid-image-container">
-                <img src="asteroid.png" alt="Asteroid">
-            </div>
-            
-            <div class="chart-card">
-                <h3>Upcoming Threat Timeline</h3>
-                <canvas id="timelineChart"></canvas>
-            </div>
-            <div class="chart-card">
-                <h3>Threat Risk Matrix</h3>
-                <canvas id="riskMatrixChart"></canvas>
-            </div>
+        <div class="asteroid-image-container">
+          <img src="/asteroid.png" alt="Asteroid" />
         </div>
+
+        <div class="chart-card">
+          <h3>Upcoming Threat Timeline</h3>
+          <canvas id="timelineChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Threat Risk Matrix</h3>
+          <canvas id="riskMatrixChart"></canvas>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="decision_maker.js"></script>
-</body>
+    <script src="/decision_maker.js"></script>
+  </body>
 </html>

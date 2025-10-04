@@ -90,4 +90,9 @@ router.add("/dashboard", () => {
   router.loadHTML("/dashboard.html");
 });
 
+router.add("/decision_maker", () => {
+  // Load the decision maker page
+  router.loadHTML("/decision_maker.html");
+});
+
 export default router;

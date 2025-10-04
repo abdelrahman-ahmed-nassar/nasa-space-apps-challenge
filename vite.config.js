@@ -5,7 +5,7 @@ import { resolve } from "path";
 export default {
   root: "src/",
   publicDir: "../static/",
-  base: "./",
+  base: "/",
   server: {
     host: true, // Open to local network and display URL
     open: !("SANDBOX_URL" in process.env || "CODESANDBOX_HOST" in process.env), // Open if it's not a CodeSandbox
@@ -18,13 +18,14 @@ export default {
       input: {
         main: resolve(__dirname, "src/index.html"),
         dashboard: resolve(__dirname, "src/dashboard.html"),
+        decision_maker: resolve(__dirname, "src/decision_maker.html"),
       },
     },
   },
   // Custom plugin to handle clean URLs
   plugins: [
     {
-      name: "dashboard-route",
+      name: "custom-routes",
       configureServer(server) {
         server.middlewares.use("/dashboard", (req, res, next) => {
           // Serve dashboard.html content at /dashboard route
@@ -36,6 +37,25 @@ export default {
 
           try {
             const content = fs.readFileSync(dashboardPath, "utf8");
+            res.writeHead(200, {
+              "Content-Type": "text/html; charset=utf-8",
+            });
+            res.end(content);
+          } catch (err) {
+            next();
+          }
+        });
+
+        server.middlewares.use("/decision_maker", (req, res, next) => {
+          // Serve decision_maker.html content at /decision_maker route
+          const decisionMakerPath = path.join(
+            process.cwd(),
+            "src",
+            "decision_maker.html"
+          );
+
+          try {
+            const content = fs.readFileSync(decisionMakerPath, "utf8");
             res.writeHead(200, {
               "Content-Type": "text/html; charset=utf-8",
             });

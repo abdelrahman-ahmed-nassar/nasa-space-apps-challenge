@@ -21,7 +21,7 @@ export class AsteroidTrajectory {
     this.trajectory = [];
     this.trajectoryLine = null; // Visual trajectory path
 
-    // Initialize crash video system
+    // Initialize crash video system (modified to show intro video)
     this.crashVideo = new CrashVideo();
   }
 
@@ -29,10 +29,12 @@ export class AsteroidTrajectory {
    * Initialize the asteroid trajectory system
    */
   init() {
-    // Initialize crash video system
+    // Initialize crash video system (modified to show intro video)
     this.crashVideo.init(() => {
-      console.log("Crash video completed, resetting simulation...");
-      // Reset simulation after crash video completes
+      console.log(
+        "Intro video completed after asteroid impact, resetting simulation..."
+      );
+      // Reset simulation after intro video completes
       this.reset();
     });
 
@@ -626,8 +628,8 @@ export class AsteroidTrajectory {
       // Stop the simulation
       this.isActive = false;
 
-      // Play crash video
-      console.log("🎬 Starting crash video sequence...");
+      // Play crash video after impact
+      console.log("🎬 Starting crash video sequence after asteroid impact...");
       this.crashVideo.play();
     }, 1000); // 1 second delay to show impact effects briefly
   }
