@@ -590,12 +590,39 @@ class SolarSystemApp {
 }
 
 /**
+ * Initialize navigation buttons
+ */
+function initializeNavigationButtons() {
+  const dashboardBtn = document.getElementById('dashboardBtn');
+  const decisionMakerBtn = document.getElementById('decisionMakerBtn');
+
+  if (dashboardBtn) {
+    dashboardBtn.addEventListener('click', () => {
+      console.log('🎯 Navigating to Dashboard...');
+      window.location.href = '/dashboard';
+    });
+  }
+
+  if (decisionMakerBtn) {
+    decisionMakerBtn.addEventListener('click', () => {
+      console.log('🎯 Navigating to Decision Maker Dashboard...');
+      window.location.href = '/decision_maker';
+    });
+  }
+
+  console.log('✓ Navigation buttons initialized');
+}
+
+/**
  * Initialize and start the application
  */
 async function startApplication() {
   try {
     const app = new SolarSystemApp();
     await app.start();
+
+    // Initialize navigation buttons
+    initializeNavigationButtons();
 
     // Make app available globally for debugging
     window.solarSystemApp = app;
