@@ -232,12 +232,9 @@ export class CrashVideo {
         this.onComplete();
       }
 
-      // Ensure we're redirected to the main simulation view
-      // This makes sure the user returns to the main app interface
-      if (window.location.pathname !== "/") {
-        console.log("🔄 Redirecting to main simulation after crash video");
-        window.location.href = "/";
-      }
+      // Redirect to dashboard after asteroid impact
+      console.log("🔄 Redirecting to dashboard after crash video");
+      window.location.href = "/dashboard";
     }, 600);
   }
 
