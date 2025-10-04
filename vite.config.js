@@ -27,42 +27,50 @@ export default {
     {
       name: "custom-routes",
       configureServer(server) {
-        server.middlewares.use("/dashboard", (req, res, next) => {
-          // Serve dashboard.html content at /dashboard route
-          const dashboardPath = path.join(
-            process.cwd(),
-            "src",
-            "dashboard.html"
-          );
+        server.middlewares.use((req, res, next) => {
+          // Only handle exact path matches for HTML routes
+          if (req.url === "/dashboard") {
+            const dashboardPath = path.join(
+              process.cwd(),
+              "src",
+              "dashboard.html"
+            );
 
-          try {
-            const content = fs.readFileSync(dashboardPath, "utf8");
-            res.writeHead(200, {
-              "Content-Type": "text/html; charset=utf-8",
-            });
-            res.end(content);
-          } catch (err) {
-            next();
+            try {
+              const content = fs.readFileSync(dashboardPath, "utf8");
+              res.writeHead(200, {
+                "Content-Type": "text/html; charset=utf-8",
+              });
+              res.end(content);
+              return;
+            } catch (err) {
+              next();
+              return;
+            }
           }
-        });
 
-        server.middlewares.use("/decision_maker", (req, res, next) => {
-          // Serve decision_maker.html content at /decision_maker route
-          const decisionMakerPath = path.join(
-            process.cwd(),
-            "src",
-            "decision_maker.html"
-          );
+          if (req.url === "/decision_maker") {
+            const decisionMakerPath = path.join(
+              process.cwd(),
+              "src",
+              "decision_maker.html"
+            );
 
-          try {
-            const content = fs.readFileSync(decisionMakerPath, "utf8");
-            res.writeHead(200, {
-              "Content-Type": "text/html; charset=utf-8",
-            });
-            res.end(content);
-          } catch (err) {
-            next();
+            try {
+              const content = fs.readFileSync(decisionMakerPath, "utf8");
+              res.writeHead(200, {
+                "Content-Type": "text/html; charset=utf-8",
+              });
+              res.end(content);
+              return;
+            } catch (err) {
+              next();
+              return;
+            }
           }
+
+          // Let Vite handle all other requests
+          next();
         });
       },
     },
